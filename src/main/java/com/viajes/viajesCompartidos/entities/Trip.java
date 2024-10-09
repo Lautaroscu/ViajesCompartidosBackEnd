@@ -9,7 +9,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.viajes.ViajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.User;
 import lombok.Setter;
 import org.hibernate.annotations.Check;
 
@@ -35,7 +35,7 @@ public class Trip {
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false , referencedColumnName = "userId") // Relación con el dueño
-    private com.viajes.ViajesCompartidos.entities.User owner;
+    private User owner;
 
     @ManyToMany
     @JoinTable(

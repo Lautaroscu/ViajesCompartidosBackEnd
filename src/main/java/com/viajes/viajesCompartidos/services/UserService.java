@@ -6,9 +6,10 @@ import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
-import com.viajes.ViajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.User;
 
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+
+
     public List<OutputUserDTO> getUsers() {
         return userRepository
                 .findAll()
@@ -24,21 +27,15 @@ public class UserService {
                 .map(OutputUserDTO::new)
                 .toList();
     }
+
     public OutputUserDTO getUser(int id) {
         if(!userRepository.existsById(id)){
             throw new UserNotFoundException("User not found");
         }
         return new OutputUserDTO(userRepository.findById(id).get());
     }
-    public OutputUserDTO createUser(InputUserDTO userDTO) {
-       if(isBadRequest(userDTO)){
-           throw new BadRequestException("Invalid user, check the fields and try again");
-       }
-       User newUser = new User(userDTO.getName() , userDTO.getLastName() , userDTO.getPhoneNumber());
-       userRepository.save(newUser);
 
-       return new OutputUserDTO(newUser);
-    }
+
     public OutputUserDTO updateUser(int id, InputUserDTO userDTO) {
         if(isBadRequest(userDTO)){
             throw new BadRequestException("Invalid user, check the fields and try again");

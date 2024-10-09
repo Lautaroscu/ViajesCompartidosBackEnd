@@ -48,6 +48,48 @@ Obtiene la informacion de un viaje en especifico dado un ID.
     }
   ]
 
+## GET `/api/trips/user/{userId}?rol=owner`
+
+## GET `/api/trips/user/{userId}?rol=passenger`
+
+## Descripción
+Este endpoint permite recuperar una lista de viajes (trips) dependiendo el rol del usuario en el viaje. Es útil para obtener todos los viajes creados por un usuario específico. O
+tambien, todos los vijes en los que el usuario forme el rol de pasajero.
+
+## Parámetros de Ruta
+- **`userId`** (int): El ID del usuario (propietario) para el cual se desean recuperar los viajes.
+- **`rol`** (string)
+## Respuesta
+### Código de Estado
+- **200 OK**: Se devuelve una lista de objetos `Trip` en caso de que existan viajes asociados al `userId` proporcionado.
+- **404 Not Found**: Si no se encuentran viajes asociados al `userId`. O bien no se proporcione el rol correctamente.
+
+### Cuerpo de la Respuesta
+```json
+[
+  {
+    "tripId": 1,
+    "origin": "Ciudad A",
+    "destination": "Ciudad B",
+    "date": "2024-10-01T12:00:00",
+    "maxPassengers": 4,
+    "countPassengers": 2,
+    "owner": {
+      "userId": 1,
+      "firstName": "Juan",
+      "lastName": "Pérez"
+    },
+    "passengers": [
+      {
+        "userId": 2,
+        "firstName": "Ana",
+        "lastName": "Gómez"
+      }
+    ]
+  }
+]
+```
+
 ## POST /api/trips/passengers
 Agrega un pasajero a un viaje.
 

@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import com.viajes.ViajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.User;
 
 @Service
 public class TripService {
@@ -37,7 +37,7 @@ public class TripService {
 
 
     }
-    public OutputTripPassengerDTO addPassengerToTrip(TripPassengerDTO tripPassengerDTO) {
+    public OutputTripDTO addPassengerToTrip(TripPassengerDTO tripPassengerDTO) {
         Trip trip = tripRepository.findById(tripPassengerDTO.getTripID())
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
         User user = userRepository.findById(tripPassengerDTO.getPassengerID())
@@ -48,8 +48,9 @@ public class TripService {
 
         // Persistir los cambios en la base de datos
         tripRepository.save(trip);
-        return new OutputTripPassengerDTO(user, trip);
+        return new OutputTripDTO(trip);
     }
+
 
 
     public OutputTripDTO findById(int id) {
@@ -113,5 +114,19 @@ public class TripService {
     }
 
 
+    public List<OutputTripDTO> getTripsByOwnerId(int userId) {
+        return tripRepository
+                .findByOwner_UserId(userId)
+                .stream()
+                .map(OutputTripDTO::new)
+                .toList();
+    }
 
+    public List<OutputTripDTO> getTripsByPassengerId(int userId) {
+        return tripRepository
+                .findByPassengers_UserId(userId)
+                .stream()
+                .map(OutputTripDTO::new)
+                .toList();
+    }
 }

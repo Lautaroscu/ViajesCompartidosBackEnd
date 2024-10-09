@@ -1,5 +1,5 @@
 package com.viajes.viajesCompartidos.DTO;
-import com.viajes.ViajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.entities.Trip;
 import lombok.Getter;
 

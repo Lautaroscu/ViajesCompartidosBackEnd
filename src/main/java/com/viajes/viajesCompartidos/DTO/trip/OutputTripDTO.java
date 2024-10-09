@@ -2,7 +2,7 @@ package com.viajes.viajesCompartidos.DTO.trip;
 
 import com.viajes.viajesCompartidos.entities.Trip;
 import lombok.Getter;
-import com.viajes.ViajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.User;
 
 import java.io.Serializable;
 

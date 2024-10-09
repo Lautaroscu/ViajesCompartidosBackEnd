@@ -14,6 +14,7 @@ import com.viajes.viajesCompartidos.services.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -21,6 +22,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
+
+
 public class TripController {
     @Autowired
     private TripService tripService;
@@ -34,11 +37,27 @@ public class TripController {
         HttpStatus status = outputTripDTO != null ? HttpStatus.OK : HttpStatus.NOT_FOUND;
         return ResponseEntity.status(status).body(outputTripDTO);
     }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<OutputTripDTO>> getTripsByUserId(
+            @PathVariable int userId,
+            @RequestParam(required = false) String rol) {
 
+        List<OutputTripDTO> trips;
+
+        if ("owner".equalsIgnoreCase(rol)) {
+            trips = tripService.getTripsByOwnerId(userId);
+        } else if ("passenger".equalsIgnoreCase(rol)) {
+            trips = tripService.getTripsByPassengerId(userId);
+        } else {
+            return ResponseEntity.badRequest().body(null); // Maneja el caso de un rol no válido
+        }
+
+        return ResponseEntity.ok(trips);
+    }
     @PostMapping("/passengers")
     public ResponseEntity<?> addPassengerToTrip(@RequestBody TripPassengerDTO tripPassengerDTO) {
         try {
-            OutputTripPassengerDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
+            OutputTripDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(tripPassengerDTO1);
         } catch (UserAlreadyExistsException | MaxPassengersOnBoardException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

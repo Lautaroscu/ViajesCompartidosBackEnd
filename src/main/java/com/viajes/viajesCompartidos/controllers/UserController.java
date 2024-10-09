@@ -30,14 +30,7 @@ public class UserController {
            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
        }
    }
-   @PostMapping
-    public ResponseEntity<?> save(@RequestBody InputUserDTO user) {
-       try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
-       }catch (BadRequestException e) {
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-       }
-   }
+
    @PutMapping("/{userId}")
     public ResponseEntity<?> update(@PathVariable int userId, @RequestBody InputUserDTO user) {
        try {

@@ -26,23 +26,7 @@ Devuelve un objeto `OutputUserDTO` con los detalles del usuario.
 
 ---
 
-## POST /api/users
-Crea un nuevo usuario.
 
-### Request Body:
-```json
-{
-  "name": "John",
-  "lastName": "Doe",
-  "phoneNumber": "2222222"
-}
-```
-### Responses 
-- 201 (Created)
-Devuelve el objeto OutputUserDTO con los detalles del nuevo usuario creado.
-
-- 400 (Bad Request)
-"Invalid user details."
 
 ## PUT /api/users/{userId}
 Actualiza los detalles de un usuario existente.
