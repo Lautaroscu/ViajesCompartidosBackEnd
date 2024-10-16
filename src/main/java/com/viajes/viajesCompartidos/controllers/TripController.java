@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
@@ -11,6 +12,8 @@ import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.TripService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +21,26 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.web.bind.annotation.*;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
 
-
 public class TripController {
     @Autowired
     private TripService tripService;
     @GetMapping
-    public ResponseEntity<List<OutputTripDTO>> getTrips() {
-        return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll());
+    public ResponseEntity<List<OutputTripDTO>> getTrips(
+            @RequestParam(name = "origin" , required = false) String origin ,
+            @RequestParam(name = "destination" , required = false) String destination ,
+            @RequestParam(name = "passengers" , required = false) Integer passengers ,
+            @RequestParam(name = "startDate" , required = false)LocalDateTime startDate ,
+            @RequestParam(name = "endDate" , required = false)LocalDateTime endDate
+
+    ) {
+        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, startDate , endDate);
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO));
     }
     @GetMapping("/{tripId}")
     public ResponseEntity<OutputTripDTO> getTripById(@PathVariable int tripId) {

@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.services;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
@@ -12,10 +13,12 @@ import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
+import com.viajes.viajesCompartidos.repositories.TripSpecifications;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,9 +31,18 @@ public class TripService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<OutputTripDTO> findAll() {
+    public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO) {
+        Specification<Trip> originFilter = TripSpecifications.isEqualOrigin(filterTripDTO.getOrigin());
+        Specification<Trip> destinationFilter = TripSpecifications.isEqualDestination(filterTripDTO.getDestination());
+        Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getPassengers());
+        Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate() , filterTripDTO.getEndDate());
+
+        Specification<Trip> spec = Specification.where(originFilter)
+                .and(destinationFilter)
+                .and(passengersFilter)
+                .and(dateFilter);
         return tripRepository
-                .findAll()
+                .findAll(spec)
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
