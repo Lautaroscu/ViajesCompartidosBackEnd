@@ -26,6 +26,21 @@ Devuelve un objeto `OutputUserDTO` con los detalles del usuario.
 
 ---
 
+## GET /api/users/email/{userEmail}
+Obtiene los detalles de un usuario específico por su Email.
+
+### Path Parameter:
+- `userEmail`: email del usuario a obtener.
+
+### Responses:
+
+#### 200 (OK)
+Devuelve un objeto `OutputUserDTO` con los detalles del usuario.
+
+#### 404 (Not Found)
+- "User not found."
+
+---
 
 
 ## PUT /api/users/{userId}

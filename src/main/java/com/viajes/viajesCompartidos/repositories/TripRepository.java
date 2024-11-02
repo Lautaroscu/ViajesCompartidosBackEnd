@@ -1,6 +1,7 @@
 package com.viajes.viajesCompartidos.repositories;
 
 import com.viajes.viajesCompartidos.entities.Trip;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -15,5 +16,7 @@ public interface TripRepository extends JpaRepository<Trip, Integer> , JpaSpecif
 
     @Query("SELECT t FROM Trip t JOIN t.passengers p WHERE p.userId = :passengerId")
     List<Trip> findByPassengers_UserId(@Param("passengerId") int passengerId);
+
+
 
 }

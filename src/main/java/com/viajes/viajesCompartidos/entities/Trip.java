@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.entities;
 
+import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
@@ -32,10 +33,15 @@ public class Trip {
     private int maxPassengers;
     @Column(name = "count_passengers")
     private int countPassengers;
-
+    @Column(name = "price")
+    private double price;
+    @Column(name = "comment")
+    private String comment;
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false , referencedColumnName = "userId") // Relación con el dueño
     private User owner;
+    @Enumerated(EnumType.STRING)
+    private TripStatus status;
 
     @ManyToMany
     @JoinTable(
@@ -46,7 +52,7 @@ public class Trip {
     private List<User> passengers;
 
     public Trip() {}
-    public Trip(String origin, String destination, LocalDateTime date, User owner , int maxPassengers) {
+    public Trip(String origin, String destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;
@@ -54,6 +60,9 @@ public class Trip {
         this.passengers = new ArrayList<>();
         this.maxPassengers = maxPassengers;
         this.countPassengers = 0;
+        this.price = price;
+        this.comment = comment;
+        this.status = TripStatus.PENDING;
     }
 
 
@@ -68,6 +77,9 @@ public class Trip {
         }
             this.passengers.add(passenger);
             countPassengers++;
+            if(countPassengers >=1){
+                    setStatus(TripStatus.ACTIVE);
+            }
     }
     public void removePassenger(User passenger){
         if(!passengers.contains(passenger)) {
@@ -75,6 +87,15 @@ public class Trip {
         }
         this.passengers.remove(passenger);
         countPassengers--;
+        if(countPassengers < 1){
+            setStatus(TripStatus.PENDING);
+        }
     }
+
+   public void setTripState(TripStatus status) {
+        this.status = status;
+   }
+
+
     }
 

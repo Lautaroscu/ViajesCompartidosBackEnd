@@ -12,12 +12,10 @@ import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.TripService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -28,20 +26,30 @@ import java.util.List;
 @RequestMapping("/api/trips")
 
 public class TripController {
+    private final TripService tripService;
     @Autowired
-    private TripService tripService;
+    public TripController(TripService tripService) {
+        this.tripService = tripService;
+    }
     @GetMapping
     public ResponseEntity<List<OutputTripDTO>> getTrips(
             @RequestParam(name = "origin" , required = false) String origin ,
             @RequestParam(name = "destination" , required = false) String destination ,
-            @RequestParam(name = "passengers" , required = false) Integer passengers ,
+            @RequestParam(name = "userId" , required = false) Integer userId ,
             @RequestParam(name = "startDate" , required = false)LocalDateTime startDate ,
-            @RequestParam(name = "endDate" , required = false)LocalDateTime endDate
+            @RequestParam(name = "endDate" , required = false)LocalDateTime endDate ,
+            @RequestParam(name = "passengers" , required = false) Integer passengers ,
+            @RequestParam(name = "sort" , required = false , defaultValue = "price") String sort ,
+            @RequestParam(name = "order", required = false, defaultValue = "asc") String order // Parámetro de orden
+
+
+
 
     ) {
-        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, startDate , endDate);
-        return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO));
+        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId,startDate , endDate);
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO , sort , order));
     }
+
     @GetMapping("/{tripId}")
     public ResponseEntity<OutputTripDTO> getTripById(@PathVariable int tripId) {
         OutputTripDTO outputTripDTO = tripService.findById(tripId);
@@ -65,6 +73,7 @@ public class TripController {
 
         return ResponseEntity.ok(trips);
     }
+
     @PostMapping("/passengers")
     public ResponseEntity<?> addPassengerToTrip(@RequestBody TripPassengerDTO tripPassengerDTO) {
         try {
@@ -78,6 +87,7 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
         }
     }
+
 
 
     @GetMapping("/passengers/{tripId}")
@@ -113,6 +123,24 @@ public class TripController {
         try {
             tripService.deleteTrip(tripId);
             return  ResponseEntity.status(HttpStatus.OK).body("trip deleted successfully");
+        }catch (TripNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @PutMapping("/cancel/{tripId}")
+    public ResponseEntity<?> cancelTrip(@PathVariable int tripId) {
+        try {
+            tripService.cancelTrip(tripId);
+            return ResponseEntity.status(HttpStatus.OK).body("Trip cancelled successfully");
+        }catch (TripNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @PutMapping("/activate/{tripId}")
+    public ResponseEntity<?> activateTrip(@PathVariable int tripId) {
+        try {
+            tripService.activateTrip(tripId);
+            return ResponseEntity.status(HttpStatus.OK).body("Trip activated successfully");
         }catch (TripNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

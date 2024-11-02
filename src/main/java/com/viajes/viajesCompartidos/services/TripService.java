@@ -9,6 +9,7 @@ import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.entities.Trip;
 
+import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
@@ -18,31 +19,48 @@ import com.viajes.viajesCompartidos.repositories.UserRepository;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import com.viajes.viajesCompartidos.entities.User;
 
 @Service
 public class TripService {
+    private final TripRepository tripRepository;
+    private final UserRepository userRepository;
     @Autowired
-    private TripRepository tripRepository;
-    @Autowired
-    private UserRepository userRepository;
 
-    public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository) {
+        this.tripRepository = tripRepository;
+        this.userRepository = userRepository;
+    }
+    
+    public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO , String sort , String direction) {
+boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
+        .anyMatch(field -> field.getName().equals(sort));
+
+        Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+
         Specification<Trip> originFilter = TripSpecifications.isEqualOrigin(filterTripDTO.getOrigin());
         Specification<Trip> destinationFilter = TripSpecifications.isEqualDestination(filterTripDTO.getDestination());
-        Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getPassengers());
+        Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getMax_passengers());
         Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate() , filterTripDTO.getEndDate());
+        Specification<Trip> availabilityFilter = TripSpecifications.isAvailableForUser(filterTripDTO.getUserId());
+
 
         Specification<Trip> spec = Specification.where(originFilter)
                 .and(destinationFilter)
                 .and(passengersFilter)
-                .and(dateFilter);
+                .and(dateFilter)
+                .and(availabilityFilter);
         return tripRepository
-                .findAll(spec)
+                .findAll(spec , isValidSort ? Sort.by(sortDirection ,sort) : Sort.unsorted())
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
@@ -65,6 +83,7 @@ public class TripService {
 
 
 
+
     public OutputTripDTO findById(int id) {
         return tripRepository.findById(id).map(OutputTripDTO::new).orElse(null);
 
@@ -74,8 +93,11 @@ public class TripService {
         if(isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
-        Trip newTrip = new Trip(trip.getOrigin() , trip.getDestination() , trip.getDate() , owner , trip.getMaxPassengers());
+
+        Trip newTrip = new Trip(trip.getOrigin() , trip.getDestination() , trip.getDate() , owner , trip.getMaxPassengers(), trip.getPrice() , trip.getComment());
+
         tripRepository.save(newTrip);
+
         return new OutputTripDTO(newTrip);
 
     }
@@ -91,6 +113,7 @@ public class TripService {
         if(trip.getMaxPassengers() < tripUpdated.getCountPassengers())
             throw new IllegalArgumentException("Max passengers could not be lower than the count of passengers on board");
         tripUpdated.setMaxPassengers(trip.getMaxPassengers());
+        tripUpdated.setTripState(trip.getStatus());
 
 
         tripUpdated = tripRepository.save(tripUpdated);
@@ -123,6 +146,16 @@ public class TripService {
         trip.removePassenger(user);
         tripRepository.save(trip);
 
+    }
+    public void cancelTrip(int tripId) {
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        trip.setStatus(TripStatus.CANCELED);
+        tripRepository.save(trip);
+    }
+    public void activateTrip(int tripId) {
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        trip.setStatus(TripStatus.ACTIVE);
+        tripRepository.save(trip);
     }
 
 

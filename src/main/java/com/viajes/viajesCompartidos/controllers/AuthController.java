@@ -9,6 +9,7 @@ import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
 
 import com.viajes.viajesCompartidos.services.AuthService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,14 +19,18 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 
 public class AuthController {
 
-
+    private final AuthService authService;
     @Autowired
-    private AuthService authService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody InputRegisterDTO userDTO) {
@@ -49,8 +54,7 @@ public class AuthController {
             jwtCookie.setMaxAge(24 * 60 * 60); // Tiempo de vida en segundos (1 día)
 
             response.addCookie(jwtCookie);
-            System.out.println("Generated token: " + token);
-            System.out.println("Cookie added: " + jwtCookie.getName() + " = " + jwtCookie.getValue());
+
 
 
             return ResponseEntity.ok("Authenticated successfully!");
@@ -68,8 +72,8 @@ public class AuthController {
                     // Establece la cookie con valor vacío, maxAge 0 para eliminarla
                     cookie.setValue(null);
                     cookie.setMaxAge(0); // Expira inmediatamente
-                    cookie.setHttpOnly(false);
-                    cookie.setSecure(false); // Cambia a true si usas HTTPS
+                    cookie.setHttpOnly(true);
+                    cookie.setSecure(true); // Cambia a true si usas HTTPS
                     cookie.setPath("/"); // Asegúrate de que la ruta coincida con la original
                     response.addCookie(cookie);
                     break;
@@ -79,6 +83,28 @@ public class AuthController {
 
         return ResponseEntity.ok("Logged out successfully!");
     }
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwtToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    try {
+                        // Validar el token
+
+                        return ResponseEntity.ok(Map.of("authenticated", authService.tokenValid(token)));
+                    } catch (ExpiredJwtException e) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
+                    } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+                    }
+                }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token not found");
+    }
+
 
 
 

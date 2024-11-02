@@ -15,8 +15,11 @@ import java.util.List;
 
 @Service
 public class UserService {
+    private final UserRepository userRepository;
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
 
 
@@ -28,12 +31,20 @@ public class UserService {
                 .toList();
     }
 
+
     public OutputUserDTO getUser(int id) {
         if(!userRepository.existsById(id)){
             throw new UserNotFoundException("User not found");
         }
         return new OutputUserDTO(userRepository.findById(id).get());
     }
+    public OutputUserDTO getUser(String email) {
+        if(!userRepository.existsByEmail(email)){
+            throw new UserNotFoundException("User not found");
+        }
+        return new OutputUserDTO(userRepository.findByEmail(email).get());
+    }
+
 
 
     public OutputUserDTO updateUser(int id, InputUserDTO userDTO) {

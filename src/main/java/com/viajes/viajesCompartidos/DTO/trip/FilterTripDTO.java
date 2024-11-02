@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FilterTripDTO {
     private String origin , destination ;
-    private Integer passengers;
+    private Integer max_passengers , userId;
     private LocalDateTime startDate, endDate ;
+
 
 }

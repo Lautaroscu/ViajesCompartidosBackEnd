@@ -17,8 +17,11 @@ import java.util.List;
 @RequestMapping("/api/users")
 
 public class UserController {
+    private final UserService userService;
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
    @GetMapping
     public ResponseEntity<List<OutputUserDTO>> findAll() {
        return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers());
@@ -27,6 +30,14 @@ public class UserController {
    public ResponseEntity<?> findById(int userId) {
        try {
            return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userId));
+       }catch (UserNotFoundException e) {
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+       }
+   }
+   @GetMapping("/email/{userEmail}")
+   public ResponseEntity<?> findByEmail(@PathVariable String userEmail) {
+       try {
+           return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userEmail));
        }catch (UserNotFoundException e) {
            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
        }

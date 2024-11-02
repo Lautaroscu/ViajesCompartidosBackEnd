@@ -13,20 +13,25 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private JwtUtil jwtUtil; // Asegúrate de tener tu JwtUtil configurado
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil; // Asegúrate de tener tu JwtUtil configurado
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+            @Autowired
+            public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository) {
+                this.authenticationManager = authenticationManager;
+                this.jwtUtil = jwtUtil;
+                this.userRepository = userRepository;
+                this.passwordEncoder = new BCryptPasswordEncoder();
+            }
 
     public void register(InputRegisterDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
@@ -51,14 +56,14 @@ public class AuthService {
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtUtil.generateToken(userDetails);
-            return token;
+            return jwtUtil.generateToken(userDetails);
 
         } catch (AuthenticationException e) {
             // Manejar errores de autenticación
             throw new InvalidCredentialsException("Invalid credentials");
         }
     }
+
 
     private boolean invalidRequest(InputRegisterDTO request) {
         return request.getEmail() == null || request.getEmail().isEmpty() || request.getPassword() == null || request.getPassword().isEmpty()
@@ -70,5 +75,9 @@ public class AuthService {
         return password2.equals(password1);
     }
 
+
+public boolean tokenValid(String token) {
+                return jwtUtil.validateToken(token);
+}
 
 }
