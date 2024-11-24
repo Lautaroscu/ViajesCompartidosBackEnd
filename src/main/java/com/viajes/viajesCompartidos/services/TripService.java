@@ -18,6 +18,7 @@ import com.viajes.viajesCompartidos.repositories.TripSpecifications;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
 
 
+import com.viajes.viajesCompartidos.repositories.payments.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,11 +34,13 @@ import com.viajes.viajesCompartidos.entities.User;
 public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository , PaymentRepository PaymentRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
+        this.paymentRepository = PaymentRepository;
     }
     
     public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO , String sort , String direction) {
@@ -113,7 +116,8 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
         if(trip.getMaxPassengers() < tripUpdated.getCountPassengers())
             throw new IllegalArgumentException("Max passengers could not be lower than the count of passengers on board");
         tripUpdated.setMaxPassengers(trip.getMaxPassengers());
-        tripUpdated.setTripState(trip.getStatus());
+        tripUpdated.setComment(trip.getComment());
+        tripUpdated.setPrice(trip.getPrice());
 
 
         tripUpdated = tripRepository.save(tripUpdated);
@@ -173,5 +177,13 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
+    }
+
+    public void completeTrip(int tripId) {
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        trip.setStatus(TripStatus.COMPLETED);
+        tripRepository.save(trip);
+
+
     }
 }

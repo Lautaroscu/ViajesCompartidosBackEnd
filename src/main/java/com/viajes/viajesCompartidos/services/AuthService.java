@@ -50,6 +50,7 @@ public class AuthService {
 
     public String authenticate(InputAuthDTO request) {
         try {
+            System.out.println(request.getEmail());
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

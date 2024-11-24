@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @ToString
 public class Payment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -44,14 +45,14 @@ public class Payment {
     @JoinColumn(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethodDetails; // Detalles del método de pago
 
-    public Payment(Long id , User payer , Trip trip , BigDecimal amount , String currency , PaymentStatus status){
-        this.id = id;
+    public Payment( User payer , Trip trip , BigDecimal amount , String currency , PaymentMethod paymentMethodDetails) {
         this.user = payer;
         this.trip = trip;
         this.amount = amount;
         this.currency = currency;
-        this.status = status;
         this.createdAt = LocalDateTime.now();
+        this.status = PaymentStatus.PENDING;
+        this.paymentMethodDetails = paymentMethodDetails;
     }
 
     public Payment() {

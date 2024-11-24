@@ -154,5 +154,19 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+    @PatchMapping("/complete/{tripId}")
+    public ResponseEntity<?> completeTrip(@PathVariable int tripId) {
+        try {
+            tripService.completeTrip(tripId);
+            return ResponseEntity.ok().build();
+
+        } catch (TripNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
+    }
+
+
+
 
 }

@@ -15,7 +15,6 @@ public class ViajesCompartidosApplication implements CommandLineRunner {
 	@Override
 	public void run(String[] args) throws Exception {
 		MercadoPagoConfig.setAccessToken(System.getenv("MP_ACCESS_TOKEN"));
-		System.out.println(MercadoPagoConfig.getAccessToken());
 	}
 }
 

@@ -4,6 +4,7 @@ import com.viajes.viajesCompartidos.services.CustomUserDetailsService;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
+@WebFilter(urlPatterns = "/api/**")
+
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
@@ -30,6 +33,11 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException, java.io.IOException {
 
+        // Ignorar la ruta /api/payments/webhook
+        if (request.getRequestURI().equals("/api/payments/webhook")) {
+            chain.doFilter(request, response);
+            return;
+        }
         // Obtener la cookie "jwtToken"
         Cookie[] cookies = request.getCookies();
         String token = null;

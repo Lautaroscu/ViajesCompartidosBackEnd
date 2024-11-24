@@ -57,12 +57,12 @@
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
+                    .csrf(csrf -> csrf.disable()) // Desactiva CSRF usando la nueva API
                     .authorizeHttpRequests((authorize) -> authorize
-                            .requestMatchers("/api/auth/**").permitAll() // Permitir acceso sin autenticación
+                            .requestMatchers("/api/auth/**").permitAll() // Permitir acceso sin autenticación para /api/auth/**
                             .anyRequest().authenticated() // Requiere autenticación para otras solicitudes
                     )
-                    .csrf(csrf -> csrf.ignoringRequestMatchers("/**")) // Ignorar CSRF para todas las rutas
-                    .cors(withDefaults()) // Usar la configuración de CORS definida en CorsConfigurationSource
+                    .cors(withDefaults()) // Usar configuración de CORS
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
             return http.build();
@@ -71,7 +71,7 @@
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Frontend React
+            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://090jcc6b-5173.brs.devtunnels.ms" , "https://www.mercadopago.com.ar")); // Frontend React
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies
