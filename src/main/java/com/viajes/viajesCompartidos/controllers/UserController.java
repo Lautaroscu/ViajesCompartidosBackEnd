@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.controllers;
 
+import com.viajes.viajesCompartidos.DTO.user.BalanceDTO;
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
@@ -60,6 +61,16 @@ public class UserController {
        }catch (UserNotFoundException e) {
            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
        }
+   }
+   @PatchMapping("/updateBalance/{userId}")
+    public ResponseEntity<?> updateBalance(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.updateBalance(userId ,userBalance));
+        }catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (BadRequestException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
    }
 
 

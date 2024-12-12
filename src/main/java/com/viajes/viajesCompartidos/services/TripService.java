@@ -1,8 +1,10 @@
 package com.viajes.viajesCompartidos.services;
 
+import java.text.Normalizer;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
@@ -11,6 +13,7 @@ import com.viajes.viajesCompartidos.entities.Trip;
 
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
@@ -35,12 +38,14 @@ public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
+    private final double tolerance;
     @Autowired
 
     public TripService(TripRepository tripRepository, UserRepository userRepository , PaymentRepository PaymentRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.paymentRepository = PaymentRepository;
+        this.tolerance = 5.0;
     }
     
     public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO , String sort , String direction) {
@@ -96,8 +101,10 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
         if(isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
+        String destinationNomalized = normalizeString(trip.getDestination());
+        String originNormalized = normalizeString(trip.getOrigin());
 
-        Trip newTrip = new Trip(trip.getOrigin() , trip.getDestination() , trip.getDate() , owner , trip.getMaxPassengers(), trip.getPrice() , trip.getComment());
+        Trip newTrip = new Trip(originNormalized ,destinationNomalized, trip.getDate() , owner , trip.getMaxPassengers(), trip.getPrice() , trip.getComment());
 
         tripRepository.save(newTrip);
 
@@ -162,6 +169,16 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
         tripRepository.save(trip);
     }
 
+    private static String normalizeString(String input) {
+        if (input == null) {
+            return null;
+        }
+        // Normaliza el texto a la forma de descomposición (NFD)
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        // Elimina los caracteres no ASCII (incluidos los acentos)
+        return normalized.replaceAll("\\p{M}", "");
+    }
+
 
     public List<OutputTripDTO> getTripsByOwnerId(int userId) {
         return tripRepository
@@ -179,11 +196,44 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
                 .toList();
     }
 
-    public void completeTrip(int tripId) {
+    public void completeTrip(int tripId , CompleteTripDTO completeTripDTO) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        if(!isUserInCity(completeTripDTO)) {
+            throw new InvalidLocationException("Invalid location");
+        }
         trip.setStatus(TripStatus.COMPLETED);
+
         tripRepository.save(trip);
 
-
     }
+    private boolean isUserInCity(CompleteTripDTO completeTripDTO) {
+            final double EARTH_RADIUS = 6371.0; // Radio de la Tierra en kilómetros
+
+            double userLatitude = Math.toRadians(completeTripDTO.getUserLatitude());
+        double a = getA(completeTripDTO, userLatitude);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            // Distancia entre los dos puntos
+            double distance = EARTH_RADIUS * c;
+            System.out.println("Distance: " + distance);
+
+            // Comparar con la tolerancia
+            return distance <= tolerance;
+        }
+
+    private static double getA(CompleteTripDTO completeTripDTO, double userLatitude) {
+        double userLongitude = Math.toRadians(completeTripDTO.getUserLongitude());
+        double cityLatitude = Math.toRadians(completeTripDTO.getCityLatitude());
+        double cityLongitude = Math.toRadians(completeTripDTO.getCityLongitude());
+
+        double deltaLat = cityLatitude - userLatitude;
+        double deltaLon = cityLongitude - userLongitude;
+
+        // Fórmula de Haversine
+        return Math.pow(Math.sin(deltaLat / 2), 2)
+                + Math.cos(userLatitude) * Math.cos(cityLatitude) * Math.pow(Math.sin(deltaLon / 2), 2);
+    }
+
+
 }

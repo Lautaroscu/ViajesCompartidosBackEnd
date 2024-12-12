@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.services;
 
+import com.viajes.viajesCompartidos.DTO.user.BalanceDTO;
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.viajes.viajesCompartidos.entities.User;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -71,5 +73,15 @@ public class UserService {
     }
     private boolean isBadRequest(InputUserDTO dto) {
         return dto.getName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
+    }
+
+    public OutputUserDTO updateBalance(int userId, BalanceDTO userBalance) {
+        User userById = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        if(userBalance.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Balance could not be negative");
+        }
+        userById.setBalance(userBalance.getBalance());
+        userRepository.save(userById);
+        return new OutputUserDTO(userById);
     }
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -26,16 +27,19 @@ public class User {
     private String email;
     @Column
     private String password;
+    @Column
+    private BigDecimal balance;
 
     public User() {
     }
 
-    public User(String firstName, String lastName, String phone , String email, String password) {
+    public User(String firstName, String lastName, String phone , String email, String password ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
         this.email = email;
         this.password = password;
+        this.balance = BigDecimal.ZERO;
     }
 
     @Override
@@ -46,5 +50,9 @@ public class User {
         return user.getUserId() == this.userId && user.getFirstName().equals(this.firstName) && user.getLastName().equals(this.lastName);
 
 
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = BigDecimal.valueOf(balance.doubleValue());
     }
 }

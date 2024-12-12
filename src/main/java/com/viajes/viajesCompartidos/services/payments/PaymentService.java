@@ -11,6 +11,7 @@ import com.mercadopago.net.MPResponse;
 import com.mercadopago.resources.preference.Preference;
 import com.viajes.viajesCompartidos.DTO.payments.RequestPayment;
 
+import com.viajes.viajesCompartidos.DTO.payments.ResponsePayment;
 import com.viajes.viajesCompartidos.DTO.payments.TransferRequest;
 import com.viajes.viajesCompartidos.DTO.payments.TransferResponseDTO;
 import com.viajes.viajesCompartidos.entities.Trip;
@@ -64,10 +65,6 @@ private final WebClient webClient;
                 .unitPrice(request.getPaymentAmount())
                 .build();
 
-        // Crear y guardar el pago en la base de datos
-        Payment payment = new Payment(payer , trip , request.getPaymentAmount() , request.getCurrency() ,paymentMethodRepository.findById(1L).get() );
-
-        paymentRepository.save(payment);
 
         // Configurar la preferencia de pago
         PreferenceRequest requestPref = PreferenceRequest.builder()
@@ -109,13 +106,23 @@ private final WebClient webClient;
         return paymentRepository.findById(id).orElse(null);
     }
 
-    public Payment save(Payment payment) {
-        return paymentRepository.save(payment);
+    public ResponsePayment save(RequestPayment payment) {
+        User payer= userRepository.findById(payment.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        Trip trip = tripRepository.findById(payment.getTripId()).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        Payment payment1 = new Payment();
+        payment1.setAmount(payment.getPaymentAmount());
+        payment1.setCurrency(payment.getCurrency());
+        payment1.setUser(payer);
+        payment1.setTrip(trip);
+        paymentRepository.save(payment1);
+
+        return new ResponsePayment(payment1);
     }
 
     public void delete(Long id) {
         paymentRepository.deleteById(id);
     }
+
 
 }
 

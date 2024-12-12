@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class OutputUserDTO implements Serializable {
@@ -13,6 +15,7 @@ public class OutputUserDTO implements Serializable {
     private String email;
     private String lastName;
     private String phoneNumber;
+    private BigDecimal balance;
 
     public OutputUserDTO(User user) {
         this.id = user.getUserId();
@@ -20,6 +23,7 @@ public class OutputUserDTO implements Serializable {
         this.email = user.getEmail();
         this.lastName = user.getLastName();
         this.phoneNumber = user.getPhone();
+        this.balance = user.getBalance();
     }
 
 }

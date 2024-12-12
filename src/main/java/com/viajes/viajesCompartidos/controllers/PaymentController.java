@@ -32,10 +32,20 @@ public class PaymentController {
         // Lógica para manejar la notificación de Mercado Pago
         return ResponseEntity.ok().body("Webhook processed successfully");
     }
+    @PostMapping()
+    public ResponseEntity<?> createPayment(@RequestBody RequestPayment payment) {
+        try {
+    return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.save(payment));
+        }catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
     @PostMapping("/createAndRedirect")
     public ResponseEntity<?> createAndRedirect(@RequestBody RequestPayment requestPayment) {
         try {
-    return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPaymentPreference(requestPayment));
+            String url = paymentService.createPaymentPreference(requestPayment);
+            System.out.println(url);
+    return ResponseEntity.status(HttpStatus.CREATED).body(url);
         }catch (MPException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

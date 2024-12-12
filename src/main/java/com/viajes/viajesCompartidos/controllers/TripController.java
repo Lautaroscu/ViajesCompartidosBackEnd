@@ -3,10 +3,12 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
@@ -127,7 +129,7 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    @PutMapping("/cancel/{tripId}")
+    @PatchMapping("/cancel/{tripId}")
     public ResponseEntity<?> cancelTrip(@PathVariable int tripId) {
         try {
             tripService.cancelTrip(tripId);
@@ -136,7 +138,7 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    @PutMapping("/activate/{tripId}")
+    @PatchMapping("/activate/{tripId}")
     public ResponseEntity<?> activateTrip(@PathVariable int tripId) {
         try {
             tripService.activateTrip(tripId);
@@ -155,13 +157,16 @@ public class TripController {
         }
     }
     @PatchMapping("/complete/{tripId}")
-    public ResponseEntity<?> completeTrip(@PathVariable int tripId) {
+    public ResponseEntity<?> completeTrip(@RequestBody CompleteTripDTO completeTripDTO ,@PathVariable int tripId) {
         try {
-            tripService.completeTrip(tripId);
+            System.out.println(completeTripDTO);
+            tripService.completeTrip(tripId , completeTripDTO);
             return ResponseEntity.ok().build();
 
         } catch (TripNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (InvalidLocationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
     }

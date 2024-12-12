@@ -29,11 +29,13 @@
     public class SecurityConfig {
         private final JwtFilter jwtFilter;
         private final CustomUserDetailsService customUserDetailsService;
+        private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
         @Autowired
 
-        public SecurityConfig(JwtFilter jwtFilter, CustomUserDetailsService customUserDetailsService) {
+        public SecurityConfig(JwtFilter jwtFilter, CustomUserDetailsService customUserDetailsService , CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
             this.jwtFilter = jwtFilter;
             this.customUserDetailsService = customUserDetailsService;
+            this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
         }
 
 
@@ -60,10 +62,13 @@
                     .csrf(csrf -> csrf.disable()) // Desactiva CSRF usando la nueva API
                     .authorizeHttpRequests((authorize) -> authorize
                             .requestMatchers("/api/auth/**").permitAll() // Permitir acceso sin autenticación para /api/auth/**
-                            .anyRequest().authenticated() // Requiere autenticación para otras solicitudes
+                            .anyRequest().authenticated()
+                            // Requiere autenticación para otras solicitudes
                     )
-                    .cors(withDefaults()) // Usar configuración de CORS
+                    .cors(withDefaults())
+                    // Usar configuración de CORS
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
 
             return http.build();
         }
@@ -72,7 +77,7 @@
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://090jcc6b-5173.brs.devtunnels.ms" , "https://www.mercadopago.com.ar")); // Frontend React
-            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies
 
