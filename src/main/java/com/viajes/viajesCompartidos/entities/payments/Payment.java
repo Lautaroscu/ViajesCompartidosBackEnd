@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Setter
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -44,7 +43,7 @@ public class Payment {
     @JoinColumn(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethodDetails; // Detalles del método de pago
 
-    public Payment( User payer , Trip trip , BigDecimal amount , String currency , PaymentMethod paymentMethodDetails) {
+    public Payment(Long id , User payer , Trip trip , BigDecimal amount , String currency , PaymentMethod paymentMethodDetails) {
         this.user = payer;
         this.trip = trip;
         this.amount = amount;
@@ -52,6 +51,7 @@ public class Payment {
         this.createdAt = LocalDateTime.now();
         this.status = PaymentStatus.PENDING;
         this.paymentMethodDetails = paymentMethodDetails;
+        this.id = id;
     }
 
     public Payment() {
@@ -59,7 +59,7 @@ public class Payment {
     }
 
     public boolean isSuccessful() {
-        return status == PaymentStatus.COMPLETED;
+        return status == PaymentStatus .APPROVED;
     }
 
     @Override

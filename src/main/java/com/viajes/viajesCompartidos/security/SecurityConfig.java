@@ -61,7 +61,8 @@
             http
                     .csrf(csrf -> csrf.disable()) // Desactiva CSRF usando la nueva API
                     .authorizeHttpRequests((authorize) -> authorize
-                            .requestMatchers("/api/auth/**").permitAll() // Permitir acceso sin autenticación para /api/auth/**
+                            .requestMatchers("/api/auth/**").permitAll()
+                                    .requestMatchers("/api/recharges/webhook").permitAll()       // Permitir acceso sin autenticación para /api/auth/**
                             .anyRequest().authenticated()
                             // Requiere autenticación para otras solicitudes
                     )
@@ -76,7 +77,7 @@
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://090jcc6b-5173.brs.devtunnels.ms" , "https://www.mercadopago.com.ar")); // Frontend React
+            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://b876-152-170-13-234.ngrok-free.app" , "https://www.mercadopago.com.ar")); // Frontend React
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies

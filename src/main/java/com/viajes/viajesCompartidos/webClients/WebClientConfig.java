@@ -8,8 +8,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    public WebClient webClient(WebClient.Builder builder) {
-        return builder.baseUrl("https://h.api-comp.redlink.com.ar/redlink/homologacion/transferenciasinmediatas/2/0/0") // Base URL del servicio externo
-                .build();
+    public WebClient webClient() {
+        return WebClient.builder().build(); // Sin base URL
     }
+
 }

@@ -2,6 +2,7 @@ package com.viajes.viajesCompartidos.entities;
 
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
+import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import jakarta.persistence.*;
@@ -69,6 +70,9 @@ public class Trip {
 
 
     public void addPassenger(User passenger) {
+        if(passenger.getBalance().doubleValue() < this.getPrice()){
+            throw new NotEnoughBalanceException("Not enough balance");
+        }
         if(passengers.contains(passenger)) {
             throw new UserAlreadyExistsException("The passenger is already on the trip");
         }

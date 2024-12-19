@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class RequestPayment implements Serializable {
     private BigDecimal paymentAmount;
     private Integer userId;
+    private String userEmail;
     private Integer tripId;
     private String currency;
 }

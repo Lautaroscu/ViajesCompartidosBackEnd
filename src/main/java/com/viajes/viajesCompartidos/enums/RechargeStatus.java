@@ -1,8 +1,7 @@
 package com.viajes.viajesCompartidos.enums;
-
-public enum PaymentStatus {
+public enum RechargeStatus {
     PENDING,
-    APPROVED,
-    FAILED
-
+    COMPLETED,
+    FAILED;
 }
+

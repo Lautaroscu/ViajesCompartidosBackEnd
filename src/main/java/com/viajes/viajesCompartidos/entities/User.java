@@ -1,11 +1,13 @@
 package com.viajes.viajesCompartidos.entities;
 
+import com.viajes.viajesCompartidos.entities.payments.Recharge;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,6 +31,9 @@ public class User {
     private String password;
     @Column
     private BigDecimal balance;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Recharge> recharges = new ArrayList<>();
+
 
     public User() {
     }

@@ -9,15 +9,13 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.net.MPResource;
 import com.mercadopago.net.MPResponse;
 import com.mercadopago.resources.preference.Preference;
-import com.viajes.viajesCompartidos.DTO.payments.RequestPayment;
+import com.viajes.viajesCompartidos.DTO.payments.*;
 
-import com.viajes.viajesCompartidos.DTO.payments.ResponsePayment;
-import com.viajes.viajesCompartidos.DTO.payments.TransferRequest;
-import com.viajes.viajesCompartidos.DTO.payments.TransferResponseDTO;
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.entities.payments.Payment;
 
+import com.viajes.viajesCompartidos.enums.PaymentStatus;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
@@ -52,17 +50,16 @@ private final WebClient webClient;
 
 
 
-    public String createPaymentPreference(RequestPayment request) throws MPException {
-
-        User payer = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
-        Trip trip = tripRepository.findById(request.getTripId()).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+    public String createPaymentPreference(RechargeDTO rechargeDTO) throws MPException {
+    System.out.println(rechargeDTO);
+        User payer = userRepository.findById(rechargeDTO.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
         PreferenceClient client = new PreferenceClient();
 
         // Configurar el ítem de pago
         PreferenceItemRequest item = PreferenceItemRequest.builder()
-                .title("Pago de "  +payer.getFirstName()  + " al viaje " + trip.getOrigin() + " - " + trip.getDestination() )
+                .title("Pago de "  +payer.getFirstName() + " " + payer.getLastName())
                 .quantity(1)
-                .unitPrice(request.getPaymentAmount())
+                .unitPrice(rechargeDTO.getAmount())
                 .build();
 
 
@@ -97,7 +94,6 @@ private final WebClient webClient;
 
 
 
-
     public List<Payment> findAll() {
         return paymentRepository.findAll();
     }
@@ -107,7 +103,14 @@ private final WebClient webClient;
     }
 
     public ResponsePayment save(RequestPayment payment) {
-        User payer= userRepository.findById(payment.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User payer = null;
+        if(payment.getUserId() != null) {
+            payer = userRepository.findById(payment.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        }else {
+            payer = userRepository.findByEmail(payment.getUserEmail()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        }
+
         Trip trip = tripRepository.findById(payment.getTripId()).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         Payment payment1 = new Payment();
         payment1.setAmount(payment.getPaymentAmount());

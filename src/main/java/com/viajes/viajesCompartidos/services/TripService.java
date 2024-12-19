@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.services;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
@@ -15,6 +16,7 @@ import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
 import com.viajes.viajesCompartidos.repositories.TripSpecifications;
@@ -27,8 +29,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.viajes.viajesCompartidos.entities.User;
@@ -39,6 +45,12 @@ public class TripService {
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final double tolerance;
+    private static final Map<Integer, Double> REFUND_POLICY = Map.of(
+            24, 1.0,  // 100% de reembolso
+            12, 0.75, // 75% de reembolso
+            6, 0.60,  // 60% de reembolso
+            2, 0.20   // 20% de reembolso
+    ) ;
     @Autowired
 
     public TripService(TripRepository tripRepository, UserRepository userRepository , PaymentRepository PaymentRepository) {
@@ -46,6 +58,7 @@ public class TripService {
         this.userRepository = userRepository;
         this.paymentRepository = PaymentRepository;
         this.tolerance = 5.0;
+
     }
     
     public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO , String sort , String direction) {
@@ -68,25 +81,31 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
                 .and(dateFilter)
                 .and(availabilityFilter);
         return tripRepository
-                .findAll(spec , isValidSort ? Sort.by(sortDirection ,sort) : Sort.unsorted())
+
+    .findAll(spec , isValidSort ? Sort.by(sortDirection ,sort) : Sort.unsorted())
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
 
 
+
     }
-    public OutputTripDTO addPassengerToTrip(TripPassengerDTO tripPassengerDTO) {
+    public OutputTripPassengerDTO addPassengerToTrip(TripPassengerDTO tripPassengerDTO) {
         Trip trip = tripRepository.findById(tripPassengerDTO.getTripID())
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
         User user = userRepository.findById(tripPassengerDTO.getPassengerID())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+
+
         // Intenta agregar el pasajero; si falla, se lanzará una excepción específica
         trip.addPassenger(user);
-
+        BigDecimal tripPrice = BigDecimal.valueOf(trip.getPrice());
+        user.setBalance(user.getBalance().subtract(tripPrice));
+        userRepository.save(user);
         // Persistir los cambios en la base de datos
         tripRepository.save(trip);
-        return new OutputTripDTO(trip);
+        return new OutputTripPassengerDTO(user , trip);
     }
 
 
@@ -151,11 +170,18 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
                 .toList();
     }
 
-    public void removePassengerFromTrip(int tripId, int userId) {
+    public OutputTripPassengerDTO removePassengerFromTrip(int tripId, int userId) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
         trip.removePassenger(user);
+        long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
+        double refund = TripService.calculateRefund(trip.getPrice() ,hoursDiff);
+        BigDecimal refundAmount = new BigDecimal(refund);
+        user.setBalance(user.getBalance().add(refundAmount));
+        userRepository.save(user);
         tripRepository.save(trip);
+
+        return new OutputTripPassengerDTO(user , trip);
 
     }
     public void cancelTrip(int tripId) {
@@ -234,6 +260,19 @@ boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
         return Math.pow(Math.sin(deltaLat / 2), 2)
                 + Math.cos(userLatitude) * Math.cos(cityLatitude) * Math.pow(Math.sin(deltaLon / 2), 2);
     }
+    private static double calculateRefund(double totalAmount, long hoursBefore) {
+        return REFUND_POLICY.entrySet()
+                .stream()
+                .filter(entry -> hoursBefore >= entry.getKey())
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(0.0) * totalAmount; // Si no coincide, no hay reembolso (0%)
+    }
+    public static long calculateHoursDifference(LocalDateTime start, LocalDateTime end) {
+        Duration duration = Duration.between(start, end);
+        return duration.toHours(); // Diferencia en horas
+    }
+
 
 
 }

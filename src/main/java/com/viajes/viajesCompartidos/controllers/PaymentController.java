@@ -1,10 +1,10 @@
 package com.viajes.viajesCompartidos.controllers;
 
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import com.viajes.viajesCompartidos.DTO.payments.*;
 import com.viajes.viajesCompartidos.DTO.payments.RequestPayment;
-import com.viajes.viajesCompartidos.entities.payments.Payment;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.services.payments.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,12 +26,8 @@ public class PaymentController {
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
-    @PostMapping("/webhook")
-    public ResponseEntity<?> paymentWebhook(@RequestBody WebhookPayload payload) {
-        System.out.println("Webhook payload received: " + payload);
-        // Lógica para manejar la notificación de Mercado Pago
-        return ResponseEntity.ok().body("Webhook processed successfully");
-    }
+
+
     @PostMapping()
     public ResponseEntity<?> createPayment(@RequestBody RequestPayment payment) {
         try {
@@ -41,15 +37,17 @@ public class PaymentController {
         }
     }
     @PostMapping("/createAndRedirect")
-    public ResponseEntity<?> createAndRedirect(@RequestBody RequestPayment requestPayment) {
+    public ResponseEntity<?> createAndRedirect(@RequestBody RechargeDTO rechargeDTO) {
         try {
-            String url = paymentService.createPaymentPreference(requestPayment);
+            String url = paymentService.createPaymentPreference(rechargeDTO);
             System.out.println(url);
     return ResponseEntity.status(HttpStatus.CREATED).body(url);
         }catch (MPException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+
     @GetMapping("/failure")
     public ResponseEntity<?> failure(
             @RequestParam("collection_id") String collectionId,

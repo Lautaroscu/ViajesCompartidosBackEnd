@@ -11,6 +11,7 @@ import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.TripService;
@@ -79,9 +80,9 @@ public class TripController {
     @PostMapping("/passengers")
     public ResponseEntity<?> addPassengerToTrip(@RequestBody TripPassengerDTO tripPassengerDTO) {
         try {
-            OutputTripDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
+            OutputTripPassengerDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(tripPassengerDTO1);
-        } catch (UserAlreadyExistsException | MaxPassengersOnBoardException e) {
+        } catch (UserAlreadyExistsException | MaxPassengersOnBoardException | NotEnoughBalanceException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (UserNotFoundException | TripNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -147,11 +148,10 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    @DeleteMapping("/passengers/{tripId}/{userId}")
+    @DeleteMapping("/passengers/{tripId}/{userId}") 
     public ResponseEntity<?> removePassengerFromTrip(@PathVariable int tripId, @PathVariable int userId) {
         try {
-            tripService.removePassengerFromTrip(tripId , userId);
-            return ResponseEntity.status(HttpStatus.OK).body("Passengers removed successfully");
+            return ResponseEntity.status(HttpStatus.OK).body(tripService.removePassengerFromTrip(tripId , userId));
         }catch (TripNotFoundException | UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
