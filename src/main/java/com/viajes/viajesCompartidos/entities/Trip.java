@@ -6,7 +6,7 @@ import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +17,7 @@ import org.hibernate.annotations.Check;
 
 @Entity
 @Table(name = "trip")
-@Getter
-@Setter
+@Data
 @Check(name = "" , constraints = "max_passengers >= count_passengers")
 public class Trip {
     @Id

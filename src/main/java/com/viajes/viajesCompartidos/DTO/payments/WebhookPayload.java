@@ -14,7 +14,7 @@ import java.util.Map;
 public class WebhookPayload implements Serializable {
         private String action;
         private String api_version;
-        private Map<String, String> data;
+        private Map<String, Object> data;
         private String date_created;
         private Long id;
         private boolean live_mode;

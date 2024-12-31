@@ -3,9 +3,7 @@ package com.viajes.viajesCompartidos.controllers;
 import com.viajes.viajesCompartidos.DTO.auth.InputAuthDTO;
 
 import com.viajes.viajesCompartidos.DTO.auth.InputRegisterDTO;
-import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
-import com.viajes.viajesCompartidos.entities.User;
-import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+
 import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
 
 import com.viajes.viajesCompartidos.services.AuthService;

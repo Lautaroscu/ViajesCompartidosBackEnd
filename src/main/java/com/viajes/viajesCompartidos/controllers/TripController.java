@@ -3,6 +3,8 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
+import com.viajes.viajesCompartidos.DTO.chat.MessageDTO;
 import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
@@ -14,11 +16,14 @@ import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
+import com.viajes.viajesCompartidos.services.ChatService;
 import com.viajes.viajesCompartidos.services.TripService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -30,9 +35,11 @@ import java.util.List;
 
 public class TripController {
     private final TripService tripService;
+    private final ChatService chatService;
     @Autowired
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, ChatService chatService) {
         this.tripService = tripService;
+        this.chatService = chatService;
     }
     @GetMapping
     public ResponseEntity<List<OutputTripDTO>> getTrips(
@@ -170,6 +177,12 @@ public class TripController {
         }
 
     }
+
+
+    @GetMapping("/{tripId}/chat")
+    public ResponseEntity<?> getChat(@PathVariable int tripId) {
+        return ResponseEntity.status(HttpStatus.OK).body(chatService.getChat(tripId));
+}
 
 
 

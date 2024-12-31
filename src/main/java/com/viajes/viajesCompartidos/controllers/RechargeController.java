@@ -25,10 +25,12 @@ public class RechargeController {
         // Extraer información relevante
         String type =  payload.getType();
         String action = payload.getAction();
-        Map<String, String> data = payload.getData();
-        String paymentIdObject = data.get("id");
+        Map<String, Object> data = payload.getData();
+        String paymentIdObject = (String) data.get("id");
+
 
         Long paymentId = Long.parseLong(paymentIdObject);
+        System.out.println(paymentId);
 
 
         // Procesar la notificación

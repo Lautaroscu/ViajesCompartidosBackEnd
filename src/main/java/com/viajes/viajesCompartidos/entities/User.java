@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.viajes.viajesCompartidos.entities.payments.Recharge;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class User {
     @Column
     private BigDecimal balance;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Recharge> recharges = new ArrayList<>();
 
 

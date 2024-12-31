@@ -1,12 +1,13 @@
 package com.viajes.viajesCompartidos.DTO;
 import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.entities.Trip;
+import lombok.Data;
 import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Getter
+@Data
 public class OutputTripPassengerDTO implements Serializable {
     private User user;
     private int tripId;

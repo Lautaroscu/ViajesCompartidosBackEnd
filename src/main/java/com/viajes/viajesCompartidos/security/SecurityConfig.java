@@ -62,7 +62,8 @@
                     .csrf(csrf -> csrf.disable()) // Desactiva CSRF usando la nueva API
                     .authorizeHttpRequests((authorize) -> authorize
                             .requestMatchers("/api/auth/**").permitAll()
-                                    .requestMatchers("/api/recharges/webhook").permitAll()       // Permitir acceso sin autenticación para /api/auth/**
+                                    .requestMatchers("/api/recharges/webhook").permitAll()
+                                    .requestMatchers("/chat/**").permitAll()// Permitir acceso sin autenticación para /api/auth/**
                             .anyRequest().authenticated()
                             // Requiere autenticación para otras solicitudes
                     )

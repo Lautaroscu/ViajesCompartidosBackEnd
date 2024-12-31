@@ -64,7 +64,7 @@ public class RechargeService {
         rechargeRepository.save(recharge);
 
         if (status == RechargeStatus.COMPLETED) {
-            User user = recharge.getUser();
+            User user = userRepository.findById(recharge.getUser().getUserId()).orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
             user.setBalance(user.getBalance().add(recharge.getAmount())); // Actualiza el saldo
             userRepository.save(user);
         }
@@ -79,16 +79,16 @@ public class RechargeService {
                 .subscribe(paymentDetails -> {
                    Recharge recharge = new Recharge();
                    recharge.setStatus(RechargeStatus.PENDING);
-                   recharge.setAmount(paymentDetails.getNetAmount());
+                   recharge.setAmount(paymentDetails.getTransactionAmount());
                    recharge.setDateCreated(LocalDateTime.now());
                    recharge.setPaymentMethod("Mercado Pago");
                     User user = userRepository.findByEmail(paymentDetails.getPayer().getEmail()).orElseThrow(()->new UserNotFoundException("user not found"));
                    recharge.setUser(user);
-                   if("approved".equals(paymentDetails.getStatus())) {
+                    rechargeRepository.save(recharge);
+                    if("approved".equals(paymentDetails.getStatus())) {
                        updateRechargeStatus(recharge.getId(), RechargeStatus.COMPLETED);
                    }
 
-                   rechargeRepository.save(recharge);
 
                 });
     }
