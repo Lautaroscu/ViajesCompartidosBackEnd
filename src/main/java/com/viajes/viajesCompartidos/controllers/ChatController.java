@@ -19,16 +19,17 @@ public class ChatController {
     public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
     }
-    @MessageMapping("/sendMessage")
-    @SendTo("/topic/messages")
-    public MessageDTO sendMessage(InputMessageDTO messageDTO) {
+
+    @MessageMapping("/sendMessage/{chatId}")
+    @SendTo("/topic/messages/{chatId}")
+    public MessageDTO sendMessage(@DestinationVariable Integer chatId, InputMessageDTO messageDTO) {
         try {
-            System.out.println("Mensaje recibido en sendMessage: " + messageDTO.getContent());
+            System.out.println("Mensaje recibido en sendMessage para chatId: " + chatId + ", contenido: " + messageDTO.getContent());
             return chatService.sendMessage(messageDTO);
 
         } catch (TripNotFoundException e) {
             throw new TripNotFoundException(e.getMessage());
         }
     }
-
 }
+
