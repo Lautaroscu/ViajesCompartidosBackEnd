@@ -24,7 +24,6 @@ public class ChatController {
     @SendTo("/topic/messages/{chatId}")
     public MessageDTO sendMessage(@DestinationVariable Integer chatId, InputMessageDTO messageDTO) {
         try {
-            System.out.println("Mensaje recibido en sendMessage para chatId: " + chatId + ", contenido: " + messageDTO.getContent());
             return chatService.sendMessage(messageDTO);
 
         } catch (TripNotFoundException e) {

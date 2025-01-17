@@ -1,0 +1,13 @@
+# Ignora todo el directorio target
+target/
+
+# Permite el archivo JAR específico
+!target/viajesCompartidos-0.0.1-SNAPSHOT.jar
+
+*.iml
+*.log
+*.class
+*.swp
+.DS_Store
+.idea/
+*.git/

@@ -41,4 +41,12 @@ public class ChatDTO implements Serializable {
     public List<OutputUserDTO> getIntegrants() {
         return integrants;
     }
+
+    public int getTripId() {
+        return tripId;
+    }
+
+    public void setTripId(int tripId) {
+        this.tripId = tripId;
+    }
 }
