@@ -1,5 +1,5 @@
 # Etapa 1: Construcción del proyecto
-FROM maven:3.9.0-openjdk-21 AS build
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -10,7 +10,7 @@ COPY . .
 # Ejecuta la construcción del proyecto con Maven
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Construcción de la imagen final
+# Etapa 2: Ejecución
 FROM openjdk:21-jdk-slim
 
 # Establece el directorio de trabajo
