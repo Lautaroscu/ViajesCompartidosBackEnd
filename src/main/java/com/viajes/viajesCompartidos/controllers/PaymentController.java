@@ -22,6 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/payments")
 public class PaymentController {
     private final PaymentService paymentService;
+
     @Autowired
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
@@ -31,18 +32,19 @@ public class PaymentController {
     @PostMapping()
     public ResponseEntity<?> createPayment(@RequestBody RequestPayment payment) {
         try {
-    return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.save(payment));
-        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.save(payment));
+        } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @PostMapping("/createAndRedirect")
     public ResponseEntity<?> createAndRedirect(@RequestBody RechargeDTO rechargeDTO) {
         try {
             String url = paymentService.createPaymentPreference(rechargeDTO);
             System.out.println(url);
-    return ResponseEntity.status(HttpStatus.CREATED).body(url);
-        }catch (MPException e) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(url);
+        } catch (MPException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
@@ -70,8 +72,8 @@ public class PaymentController {
         response.put("site_id", siteId);
         response.put("processing_mode", processingMode);
         response.put("merchant_account_id", merchantAccountId);
-        response.put("message" , "Tu pago no se pudo procesar");
-        response.put("status","failed");
+        response.put("message", "Tu pago no se pudo procesar");
+        response.put("status", "failed");
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -103,11 +105,12 @@ public class PaymentController {
         );
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
     @PostMapping("/transfer")
     public ResponseEntity<Mono<TransferResponseDTO>> transferMoney(@RequestBody TransferRequest transferRequest) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(paymentService.transferMoney(transferRequest));
-        }catch (BadRequestException e) {
+        } catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

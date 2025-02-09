@@ -6,8 +6,12 @@
     import org.springframework.stereotype.Component;
 
     import java.security.Key;
+    import java.util.Base64;
     import java.util.Date;
     import com.viajes.viajesCompartidos.entities.User;
+
+    import javax.crypto.SecretKey;
+    import javax.crypto.spec.SecretKeySpec;
 
     @Component
     public class JwtUtil {
@@ -15,6 +19,7 @@
         private final int EXPIRATION_TIME = 86400000; // Tiempo de expiración en milisegundos (24 horas)
 
         public String generateToken(UserDetails user) {
+            
             return Jwts.builder()
                     .setSubject(user.getUsername())
                     .setIssuedAt(new Date())

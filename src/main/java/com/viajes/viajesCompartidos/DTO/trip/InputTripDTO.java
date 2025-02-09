@@ -18,9 +18,10 @@ public class InputTripDTO implements Serializable {
     private double price;
     private String comment;
     private TripStatus status;
+    private boolean isPrivate;
 
     public InputTripDTO() {}
-    public InputTripDTO(String origin, String destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status) {
+    public InputTripDTO(String origin, String destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status , boolean isPrivate) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;
@@ -29,6 +30,7 @@ public class InputTripDTO implements Serializable {
         this.price = price;
         this.comment = comment;
         this.status = status;
+        this.isPrivate = isPrivate;
 
     }
 }

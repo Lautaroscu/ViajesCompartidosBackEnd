@@ -19,59 +19,65 @@ import java.util.List;
 
 public class UserController {
     private final UserService userService;
+
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
-   @GetMapping
-    public ResponseEntity<List<OutputUserDTO>> findAll() {
-       return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers());
-   }
-   @GetMapping("/{userId}")
-   public ResponseEntity<?> findById(int userId) {
-       try {
-           return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userId));
-       }catch (UserNotFoundException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-       }
-   }
-   @GetMapping("/email/{userEmail}")
-   public ResponseEntity<?> findByEmail(@PathVariable String userEmail) {
-       try {
-           return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userEmail));
-       }catch (UserNotFoundException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-       }
-   }
 
-   @PutMapping("/{userId}")
-    public ResponseEntity<?> update(@PathVariable int userId, @RequestBody InputUserDTO user) {
-       try {
-       return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(userId, user));
-       }catch (UserNotFoundException  e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-       }catch (BadRequestException e){
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-       }
-   }
-   @DeleteMapping("/{userId}")
-    public ResponseEntity<?> delete(@PathVariable int userId) {
-       try {
-           return ResponseEntity.status(HttpStatus.OK).body(userService.deleteUser(userId));
-       }catch (UserNotFoundException e) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-       }
-   }
-   @PatchMapping("/updateBalance/{userId}")
-    public ResponseEntity<?> updateBalance(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
+    @GetMapping
+    public ResponseEntity<List<OutputUserDTO>> findAll() {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers());
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> findById(int userId) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(userService.updateBalance(userId ,userBalance));
-        }catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userId));
+        } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }catch (BadRequestException e){
+        }
+    }
+
+    @GetMapping("/email/{userEmail}")
+    public ResponseEntity<?> findByEmail(@PathVariable String userEmail) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userEmail));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> update(@PathVariable int userId, @RequestBody InputUserDTO user) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(userId, user));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-   }
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> delete(@PathVariable int userId) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.deleteUser(userId));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/updateBalance/{userId}")
+    public ResponseEntity<?> updateBalance(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.updateBalance(userId, userBalance));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
 
 }

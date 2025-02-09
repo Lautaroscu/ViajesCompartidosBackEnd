@@ -17,6 +17,7 @@ import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
+import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
@@ -126,10 +127,9 @@ public class TripService {
         if (isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
-        String destinationNomalized = normalizeString(trip.getDestination());
-        String originNormalized = normalizeString(trip.getOrigin());
 
-        Trip newTrip = new Trip(originNormalized, destinationNomalized, trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment());
+
+        Trip newTrip = new Trip(trip.getOrigin(), trip.getDestination(), trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.isPrivate());
 
         newTrip = tripRepository.save(newTrip);
         Chat newChat = new Chat();
@@ -156,17 +156,18 @@ public class TripService {
         tripUpdated.setMaxPassengers(trip.getMaxPassengers());
         tripUpdated.setComment(trip.getComment());
         tripUpdated.setPrice(trip.getPrice());
-
-
+        tripUpdated.setPrivate(trip.isPrivate());
         tripUpdated = tripRepository.save(tripUpdated);
 
         return new OutputTripDTO(tripUpdated);
     }
 
     public void deleteTrip(int id) {
-        if (!tripRepository.existsById(id)) {
-            throw new TripNotFoundException("Trip not found");
+        Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        if (trip.getCountPassengers() > 0) {
+            throw new TripContainsPassangersException("El viaje contiene al menos un pasajero");
         }
+
         tripRepository.deleteById(id);
     }
 
@@ -237,7 +238,7 @@ public class TripService {
                 .toList();
     }
 
-    public void completeTrip(int tripId, CompleteTripDTO completeTripDTO) {
+    public void completeTrip(Integer tripId, CompleteTripDTO completeTripDTO) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         if (!isUserInCity(completeTripDTO)) {
             throw new InvalidLocationException("Invalid location");

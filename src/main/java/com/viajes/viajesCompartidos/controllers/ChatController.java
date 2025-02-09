@@ -21,7 +21,7 @@ public class ChatController {
     }
 
     @MessageMapping("/sendMessage/{chatId}")
-    @SendTo("/topic/messages/{chatId}")
+    @SendTo("/topic/chat/messages/{chatId}")
     public MessageDTO sendMessage(@DestinationVariable Integer chatId, InputMessageDTO messageDTO) {
         try {
             return chatService.sendMessage(messageDTO);

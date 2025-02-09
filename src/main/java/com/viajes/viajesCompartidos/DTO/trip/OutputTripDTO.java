@@ -16,7 +16,7 @@ public class OutputTripDTO  extends InputTripDTO implements Serializable  {
 
     public OutputTripDTO()  {}
     public OutputTripDTO(Trip trip) {
-       super(trip.getOrigin() , trip.getDestination() , trip.getDate() ,trip.getOwner().getUserId(),trip.getMaxPassengers() ,trip.getPrice() ,trip.getComment() , trip.getStatus());
+       super(trip.getOrigin() , trip.getDestination() , trip.getDate() ,trip.getOwner().getUserId(),trip.getMaxPassengers() ,trip.getPrice() ,trip.getComment() , trip.getStatus() , trip.isPrivate());
        this.tripId = trip.getTripId();
        this.passengersCount = trip.getCountPassengers();
 

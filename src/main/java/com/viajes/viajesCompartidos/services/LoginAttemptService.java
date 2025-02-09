@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.services;
 
+import com.viajes.viajesCompartidos.exceptions.TooManyAttemptsException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -23,14 +24,18 @@ public class LoginAttemptService {
 
     public void loginSucceeded(String username) {
         attemptsCache.remove(username); // El usuario ha iniciado sesión correctamente
+
     }
 
     public void loginFailed(String username) {
         int attempts = attemptsCache.getOrDefault(username, 0);
         attempts++;
-        if (attempts >= MAX_ATTEMPT) {
+        attemptsCache.put(username, attempts); // Guardamos el nuevo intento fallido
+
+        if (MAX_ATTEMPT - attempts == 0) {
             lockTimeCache.put(username, System.currentTimeMillis()); // Bloquear el usuario por un tiempo
         }
-        attemptsCache.put(username, attempts);
+
+        System.out.println(MAX_ATTEMPT - attempts + " attempts left");
     }
 }

@@ -2,6 +2,7 @@ package com.viajes.viajesCompartidos.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +14,11 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
-    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Message> messages;
 
@@ -50,6 +51,7 @@ public class Chat {
     public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
+
     public void addMessage(Message message) {
         this.messages.add(message);
     }

@@ -6,7 +6,9 @@ import com.viajes.viajesCompartidos.DTO.auth.InputRegisterDTO;
 
 import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
 
+import com.viajes.viajesCompartidos.exceptions.TooManyAttemptsException;
 import com.viajes.viajesCompartidos.services.AuthService;
+import com.viajes.viajesCompartidos.services.LoginAttemptService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,9 +27,13 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    private final LoginAttemptService loginAttemptService;
+
     @Autowired
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, LoginAttemptService loginAttemptService) {
         this.authService = authService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @PostMapping("/register")
@@ -42,26 +48,34 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody InputAuthDTO request ,HttpServletRequest httpServletRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody InputAuthDTO request, HttpServletRequest httpServletRequest, HttpServletResponse response) {
         try {
+
+
+            if(loginAttemptService.isBlocked(request.getEmail())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Too many attempts, try again later");
+            }
+
+
             String token = authService.authenticate(request);
             boolean isSecure = httpServletRequest.getScheme().equals("https"); // Verifica si la solicitud es HTTPS
 
             Cookie jwtCookie = new Cookie("jwtToken", token);
-            jwtCookie.setHttpOnly(false); // Evita el acceso desde JavaScript
+            jwtCookie.setHttpOnly(true); // Evita el acceso desde JavaScript
             jwtCookie.setSecure(isSecure); // Solo se envía por HTTPS
             jwtCookie.setPath("/"); // Disponible en toda la app
             jwtCookie.setMaxAge(24 * 60 * 60); // Tiempo de vida en segundos (1 día)
-
             response.addCookie(jwtCookie);
 
-
-
+            loginAttemptService.loginSucceeded(request.getEmail());
             return ResponseEntity.ok("Authenticated successfully!");
-        } catch (InvalidCredentialsException e) {
+        }
+        catch (InvalidCredentialsException e) {
+            loginAttemptService.loginFailed(request.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
+
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
@@ -83,6 +97,7 @@ public class AuthController {
 
         return ResponseEntity.ok("Logged out successfully!");
     }
+
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -104,10 +119,6 @@ public class AuthController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token not found");
     }
-
-
-
-
 
 
 }

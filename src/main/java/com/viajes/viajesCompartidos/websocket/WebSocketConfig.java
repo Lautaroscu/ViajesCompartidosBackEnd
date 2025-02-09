@@ -13,13 +13,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Configuración del broker de mensajes
-        config.enableSimpleBroker("/topic"); // Canal para enviar mensajes
+        config.enableSimpleBroker("/topic/chat"); // Canal para enviar mensajes
         config.setApplicationDestinationPrefixes("/app"); // Prefijo para enviar mensajes desde cliente al servidor
+
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
                 .setAllowedOrigins("http://localhost:5173"); // Cambia según el dominio del frontend
+
+
     }
 }

@@ -19,12 +19,14 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+
     @Autowired
     public ChatService(ChatRepository chatRepository, UserRepository userRepository, MessageRepository messageRepository) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
     }
+
     public ChatDTO getChat(int tripId) {
         Chat chat = chatRepository.findByTripId(tripId).orElse(null);
         if (chat == null) {
@@ -33,6 +35,7 @@ public class ChatService {
         return new ChatDTO(chat);
 
     }
+
     @Transactional
     public MessageDTO sendMessage(InputMessageDTO messageDTO) {
         Message message = new Message();

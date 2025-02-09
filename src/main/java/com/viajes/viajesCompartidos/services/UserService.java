@@ -18,11 +18,11 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
 
 
     public List<OutputUserDTO> getUsers() {
@@ -35,25 +35,25 @@ public class UserService {
 
 
     public OutputUserDTO getUser(int id) {
-        if(!userRepository.existsById(id)){
+        if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("User not found");
         }
         return new OutputUserDTO(userRepository.findById(id).get());
     }
+
     public OutputUserDTO getUser(String email) {
-        if(!userRepository.existsByEmail(email)){
+        if (!userRepository.existsByEmail(email)) {
             throw new UserNotFoundException("User not found");
         }
         return new OutputUserDTO(userRepository.findByEmail(email).get());
     }
 
 
-
     public OutputUserDTO updateUser(int id, InputUserDTO userDTO) {
-        if(isBadRequest(userDTO)){
+        if (isBadRequest(userDTO)) {
             throw new BadRequestException("Invalid user, check the fields and try again");
         }
-        if(!userRepository.existsById(id)){
+        if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("User not found");
         }
         User userById = userRepository.findById(id).get();
@@ -63,21 +63,23 @@ public class UserService {
         userById = userRepository.save(userById);
         return new OutputUserDTO(userById);
     }
+
     public OutputUserDTO deleteUser(int id) {
-        if(!userRepository.existsById(id)){
+        if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("User not found");
         }
         User userById = userRepository.findById(id).get();
         userRepository.deleteById(id);
         return new OutputUserDTO(userById);
     }
+
     private boolean isBadRequest(InputUserDTO dto) {
         return dto.getName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
     }
 
     public OutputUserDTO updateBalance(int userId, BalanceDTO userBalance) {
         User userById = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
-        if(userBalance.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+        if (userBalance.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new BadRequestException("Balance could not be negative");
         }
         userById.setBalance(userBalance.getBalance());

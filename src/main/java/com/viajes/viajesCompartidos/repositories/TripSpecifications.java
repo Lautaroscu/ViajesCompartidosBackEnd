@@ -15,11 +15,15 @@ public class TripSpecifications {
     public static Specification<Trip> isEqualOrigin(String origin) {
         return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
             if (origin == null || origin.isEmpty()) {
-                return builder.conjunction();  // No aplica filtro
+                return builder.conjunction(); // No aplica filtro
             }
-            return builder.like(builder.lower(root.get("origin")), "%" + origin.toLowerCase() + "%");
+            return builder.like(
+                    builder.function("unaccent", String.class, builder.lower(root.get("origin"))),
+                    "%" + origin.toLowerCase() + "%"
+            );
         };
     }
+
     // Excluir viajes del propietario y cancelados
     public static Specification<Trip> isAvailableForUser(Integer userId) {
 
@@ -50,11 +54,15 @@ public class TripSpecifications {
     public static Specification<Trip> isEqualDestination(String destination) {
         return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
             if (destination == null || destination.isEmpty()) {
-                return builder.conjunction();  // No aplica filtro
+                return builder.conjunction(); // No aplica filtro
             }
-            return builder.like(builder.lower(root.get("destination")), "%" + destination.toLowerCase() + "%");
+            return builder.like(
+                    builder.function("unaccent", String.class, builder.lower(root.get("destination"))),
+                    "%" + destination.toLowerCase() + "%"
+            );
         };
     }
+
 
     public static Specification<Trip> atLeastPassengers(Integer max_passengers) {
         return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {

@@ -25,13 +25,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-            @Autowired
-            public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository) {
-                this.authenticationManager = authenticationManager;
-                this.jwtUtil = jwtUtil;
-                this.userRepository = userRepository;
-                this.passwordEncoder = new BCryptPasswordEncoder();
-            }
+    @Autowired
+    public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     public void register(InputRegisterDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
@@ -50,8 +50,6 @@ public class AuthService {
 
     public String authenticate(InputAuthDTO request) {
         try {
-            System.out.println(request.getEmail());
-
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
@@ -77,8 +75,8 @@ public class AuthService {
     }
 
 
-public boolean tokenValid(String token) {
-                return jwtUtil.validateToken(token);
-}
+    public boolean tokenValid(String token) {
+        return jwtUtil.validateToken(token);
+    }
 
 }

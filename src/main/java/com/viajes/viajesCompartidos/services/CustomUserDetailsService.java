@@ -17,11 +17,13 @@ import java.util.List;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
+
     @Autowired
     public CustomUserDetailsService(UserRepository userRepository) {
         super();
         this.userRepository = userRepository;
     }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Buscar el usuario en la base de datos por email

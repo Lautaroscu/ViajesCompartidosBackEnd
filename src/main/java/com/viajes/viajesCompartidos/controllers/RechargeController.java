@@ -16,14 +16,16 @@ import java.util.Map;
 @RequestMapping("/api/recharges")
 public class RechargeController {
     private final RechargeService rechargeService;
+
     @Autowired
     public RechargeController(RechargeService rechargeService) {
         this.rechargeService = rechargeService;
     }
+
     @PostMapping("/webhook")
     public ResponseEntity<?> paymentWebhook(@RequestBody WebhookPayload payload) {
         // Extraer información relevante
-        String type =  payload.getType();
+        String type = payload.getType();
         String action = payload.getAction();
         Map<String, Object> data = payload.getData();
         String paymentIdObject = (String) data.get("id");
@@ -42,13 +44,13 @@ public class RechargeController {
         return ResponseEntity.ok().build();
     }
 
-@GetMapping("/topRecharges")
+    @GetMapping("/topRecharges")
     public ResponseEntity<List<RechargeDTO>> getTopRecharges(
-            @RequestParam(required = false) Integer limit ,
+            @RequestParam(required = false) Integer limit,
             @RequestParam(required = true) Integer userId
-) {
-        return ResponseEntity.status(HttpStatus.OK).body(rechargeService.getRechargesLimitedAndSortByDate(limit , userId));
-}
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(rechargeService.getRechargesLimitedAndSortByDate(limit, userId));
+    }
 
 
 }

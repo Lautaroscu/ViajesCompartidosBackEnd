@@ -50,9 +50,15 @@ public class Trip {
             inverseJoinColumns = @JoinColumn(name = "user_id" , referencedColumnName = "userId" ) // Columna que hace referencia a la entidad User
     )
     private List<User> passengers;
+    @Column
+    private boolean isPrivate;
+
+
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Chat chat;
 
     public Trip() {}
-    public Trip(String origin, String destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment) {
+    public Trip(String origin, String destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment , boolean isPrivate ) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;
@@ -63,6 +69,7 @@ public class Trip {
         this.price = price;
         this.comment = comment;
         this.status = TripStatus.PENDING;
+        this.isPrivate = isPrivate;
     }
 
 
