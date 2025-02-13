@@ -78,7 +78,7 @@
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://b876-152-170-13-234.ngrok-free.app" , "https://www.mercadopago.com.ar")); // Frontend React
+            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://viajescompartidosbackend.onrender.com" , "https://www.mercadopago.com.ar")); // Frontend React
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies

@@ -67,6 +67,7 @@ private final WebClient webClient;
         PreferenceRequest requestPref = PreferenceRequest.builder()
                 .items(List.of(item))
                 .payer(PreferencePayerRequest.builder().email(payer.getEmail()).build())
+
                 .backUrls(PreferenceBackUrlsRequest.builder()
                         .success("http://localhost:5173/payment/status/success")
                         .failure("http://localhost:5173/payment/status/failure")
