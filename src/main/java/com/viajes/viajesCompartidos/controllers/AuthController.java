@@ -58,13 +58,13 @@ public class AuthController {
 
 
             String token = authService.authenticate(request);
-            boolean isSecure = httpServletRequest.getScheme().equals("https"); // Verifica si la solicitud es HTTPS
 
             Cookie jwtCookie = new Cookie("jwtToken", token);
             jwtCookie.setHttpOnly(true); // Evita el acceso desde JavaScript
-            jwtCookie.setSecure(isSecure); // Solo se envía por HTTPS
+            jwtCookie.setSecure(true); // Solo se envía por HTTPS
             jwtCookie.setPath("/"); // Disponible en toda la app
             jwtCookie.setMaxAge(24 * 60 * 60); // Tiempo de vida en segundos (1 día)
+            jwtCookie.setAttribute("SameSite" , "None");
             response.addCookie(jwtCookie);
 
             loginAttemptService.loginSucceeded(request.getEmail());
