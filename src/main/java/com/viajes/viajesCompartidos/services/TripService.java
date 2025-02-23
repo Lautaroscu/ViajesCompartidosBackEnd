@@ -12,25 +12,25 @@ import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.entities.Chat;
+import com.viajes.viajesCompartidos.entities.JoinRequest;
 import com.viajes.viajesCompartidos.entities.Trip;
 
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
-import com.viajes.viajesCompartidos.repositories.ChatRepository;
-import com.viajes.viajesCompartidos.repositories.TripRepository;
-import com.viajes.viajesCompartidos.repositories.TripSpecifications;
-import com.viajes.viajesCompartidos.repositories.UserRepository;
+import com.viajes.viajesCompartidos.repositories.*;
 
 
 import com.viajes.viajesCompartidos.repositories.payments.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -48,6 +48,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
+    private final JoinRequestRepository joinRequestRepository;
     private final double tolerance;
     private static final Map<Integer, Double> REFUND_POLICY = Map.of(
             24, 1.0,  // 100% de reembolso
@@ -58,10 +59,11 @@ public class TripService {
 
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
+        this.joinRequestRepository = joinRequestRepository;
         this.tolerance = 5.0;
 
     }
@@ -187,6 +189,8 @@ public class TripService {
     public OutputTripPassengerDTO removePassengerFromTrip(int tripId, int userId) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId , userId).orElseThrow(() -> new JoinRequestNotFoundException("Join request not found"));
+
         trip.removePassenger(user);
         long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
         double refund = TripService.calculateRefund(trip.getPrice(), hoursDiff);
@@ -194,6 +198,8 @@ public class TripService {
         user.setBalance(user.getBalance().add(refundAmount));
         userRepository.save(user);
         tripRepository.save(trip);
+        joinRequestRepository.delete(joinRequest);
+        joinRequestRepository.flush();
 
         return new OutputTripPassengerDTO(user, trip);
 
@@ -222,20 +228,46 @@ public class TripService {
     }
 
 
-    public List<OutputTripDTO> getTripsByOwnerId(int userId) {
+    public List<OutputTripDTO> getTripsByOwnerId(int userId , TripStatus status) {
+        if(!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User not found");
+        }
+        Specification<Trip> specOwner = TripSpecifications.isEqualOwnerId(userId);
+        Specification<Trip> specStatus = TripSpecifications.isEqualStatus(status);
+        Specification<Trip> spec = Specification.where(specOwner).and(specStatus);
         return tripRepository
-                .findByOwner_UserId(userId)
+                .findAll(spec)
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
     }
 
-    public List<OutputTripDTO> getTripsByPassengerId(int userId) {
+    public List<OutputTripDTO> getTripsByPassengerId(int userId, TripStatus status) {
+        if(!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User not found");
+        }
         return tripRepository
-                .findByPassengers_UserId(userId)
+                .findByPassengers_UserId(userId , status)
                 .stream()
                 .map(OutputTripDTO::new)
                 .toList();
+    }
+    public List<OutputTripDTO> getTripByUserIdRolAndStatus(int userId, String rol,TripStatus status) {
+        List<OutputTripDTO> trips = null;
+        TripStatus tripStatusDefault = TripStatus.ACTIVE;
+        status = status.toString() == null || status.toString().isEmpty() ? tripStatusDefault : status;
+
+        if ("owner".equalsIgnoreCase(rol)) {
+            trips = this.getTripsByOwnerId(userId , status);
+        } else if ("passenger".equalsIgnoreCase(rol)) {
+            trips = this.getTripsByPassengerId(userId ,status);
+        }
+        if (trips == null) {
+            throw  new BadRequestException("No trips found , check your parameters");
+        }
+
+        return trips;
+
     }
 
     public void completeTrip(Integer tripId, CompleteTripDTO completeTripDTO) {

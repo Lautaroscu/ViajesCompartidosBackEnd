@@ -85,4 +85,24 @@ public class TripSpecifications {
         };
     }
 
+    public static  Specification<Trip> isEqualOwnerId(Integer ownerId) {
+        return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
+            if (ownerId == null) {
+                return builder.conjunction();  // No aplica filtro si cualquiera de las fechas es nula
+            }
+            return builder.equal(root.get("owner").get("userId"), ownerId);
+        };
+    }
+    public static Specification<Trip> isEqualStatus(TripStatus status) {
+        return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
+            if (status == null || status.toString().isEmpty()) {
+                return builder.conjunction();  // No aplica filtro si cualquiera de las fechas es nula
+            }
+            return builder.equal(root.get("status"), status);
+        };
+    }
+
+
+
+
 }

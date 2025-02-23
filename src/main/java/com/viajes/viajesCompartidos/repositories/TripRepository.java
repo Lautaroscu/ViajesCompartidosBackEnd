@@ -1,6 +1,7 @@
 package com.viajes.viajesCompartidos.repositories;
 
 import com.viajes.viajesCompartidos.entities.Trip;
+import com.viajes.viajesCompartidos.enums.TripStatus;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,10 +13,11 @@ import java.util.List;
 
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Integer> , JpaSpecificationExecutor<Trip> {
-    List<Trip> findByOwner_UserId(int ownerId);
 
-    @Query("SELECT t FROM Trip t JOIN t.passengers p WHERE p.userId = :passengerId")
-    List<Trip> findByPassengers_UserId(@Param("passengerId") int passengerId);
+    @Query("SELECT t FROM Trip t JOIN t.passengers p WHERE p.userId = :passengerId and t.status = :status")
+    List<Trip> findByPassengers_UserId(@Param("passengerId") int passengerId , @Param("status") TripStatus status);
+
+
 
 
 

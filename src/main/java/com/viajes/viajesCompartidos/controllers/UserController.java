@@ -68,10 +68,23 @@ public class UserController {
         }
     }
 
-    @PatchMapping("/updateBalance/{userId}")
-    public ResponseEntity<?> updateBalance(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
+    @PatchMapping("/updateBalance/{userId}/plus")
+    public ResponseEntity<?> updateBalancePlus(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(userService.updateBalance(userId, userBalance));
+            userService.addBalance(userId, userBalance);
+            return ResponseEntity.ok().build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/updateBalance/{userId}/minus")
+    public ResponseEntity<?> updateBalanceMinus(@PathVariable int userId, @RequestBody BalanceDTO userBalance) {
+        try {
+            userService.subtractBalance(userId, userBalance);
+            return ResponseEntity.ok().build();
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (BadRequestException e) {

@@ -9,6 +9,7 @@ import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
+import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
@@ -60,32 +61,6 @@ public class TripController {
         FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate);
         return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO, sort, order));
     }
-
-    @GetMapping("/{tripId}")
-    public ResponseEntity<OutputTripDTO> getTripById(@PathVariable int tripId) {
-        OutputTripDTO outputTripDTO = tripService.findById(tripId);
-        HttpStatus status = outputTripDTO != null ? HttpStatus.OK : HttpStatus.NOT_FOUND;
-        return ResponseEntity.status(status).body(outputTripDTO);
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OutputTripDTO>> getTripsByUserId(
-            @PathVariable int userId,
-            @RequestParam(required = false) String rol) {
-
-        List<OutputTripDTO> trips;
-
-        if ("owner".equalsIgnoreCase(rol)) {
-            trips = tripService.getTripsByOwnerId(userId);
-        } else if ("passenger".equalsIgnoreCase(rol)) {
-            trips = tripService.getTripsByPassengerId(userId);
-        } else {
-            return ResponseEntity.badRequest().body(null); // Maneja el caso de un rol no válido
-        }
-
-        return ResponseEntity.ok(trips);
-    }
-
     @PostMapping("/passengers")
     public ResponseEntity<?> addPassengerToTrip(@RequestBody TripPassengerDTO tripPassengerDTO) {
         try {
@@ -97,6 +72,30 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+        }
+    }
+
+    @GetMapping("/{tripId}")
+    public ResponseEntity<OutputTripDTO> getTripById(@PathVariable int tripId) {
+        OutputTripDTO outputTripDTO = tripService.findById(tripId);
+        HttpStatus status = outputTripDTO != null ? HttpStatus.OK : HttpStatus.NOT_FOUND;
+        return ResponseEntity.status(status).body(outputTripDTO);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getTripsByUserId(
+            @PathVariable int userId,
+            @RequestParam(required = false , defaultValue = "passenger") String rol ,
+            @RequestParam(required = false , defaultValue = "ACTIVE") TripStatus status
+    )
+    {
+        try {
+            return ResponseEntity.ok(tripService.getTripByUserIdRolAndStatus(userId, rol, status));
+
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
