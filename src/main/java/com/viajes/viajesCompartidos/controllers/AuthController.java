@@ -9,6 +9,7 @@ import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
 import com.viajes.viajesCompartidos.exceptions.TooManyAttemptsException;
 import com.viajes.viajesCompartidos.services.AuthService;
 import com.viajes.viajesCompartidos.services.LoginAttemptService;
+import com.viajes.viajesCompartidos.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,12 +28,14 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private  final UserService userService;
 
     private final LoginAttemptService loginAttemptService;
 
     @Autowired
-    public AuthController(AuthService authService, LoginAttemptService loginAttemptService) {
+    public AuthController(AuthService authService, UserService userService, LoginAttemptService loginAttemptService) {
         this.authService = authService;
+        this.userService = userService;
         this.loginAttemptService = loginAttemptService;
     }
 
@@ -40,7 +43,7 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody InputRegisterDTO userDTO) {
         try {
             authService.register(userDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("registered", true));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -50,12 +53,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody InputAuthDTO request, HttpServletRequest httpServletRequest, HttpServletResponse response) {
         try {
-
-
             if(loginAttemptService.isBlocked(request.getEmail())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Too many attempts, try again later");
             }
-
 
             String token = authService.authenticate(request);
 
@@ -65,10 +65,21 @@ public class AuthController {
             jwtCookie.setPath("/"); // Disponible en toda la app
             jwtCookie.setMaxAge(24 * 60 * 60); // Tiempo de vida en segundos (1 día)
             jwtCookie.setAttribute("SameSite" , "None");
+
+            int userId = userService.getUser(request.getEmail()).getId();
+
+            Cookie userCookie = new Cookie("uuuaaa", String.valueOf(userId));
+
+
+            userCookie.setPath("/");
+            userCookie.setMaxAge(24 * 60 * 60);
+            userCookie.setHttpOnly(false);
+            userCookie.setSecure(false);
             response.addCookie(jwtCookie);
+            response.addCookie(userCookie);
 
             loginAttemptService.loginSucceeded(request.getEmail());
-            return ResponseEntity.ok("Authenticated successfully!");
+            return ResponseEntity.ok(Map.of("authenticated", true));
         }
         catch (InvalidCredentialsException e) {
             loginAttemptService.loginFailed(request.getEmail());
@@ -95,7 +106,7 @@ public class AuthController {
             }
         }
 
-        return ResponseEntity.ok("Logged out successfully!");
+        return ResponseEntity.ok(Map.of("unauthenticated", true));
     }
 
     @GetMapping("/validate")

@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.controllers;
 import com.viajes.viajesCompartidos.DTO.user.BalanceDTO;
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
+import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.UserService;
@@ -30,8 +31,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers());
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> findById(int userId) {
+    @GetMapping("/id/{userId}")
+    public ResponseEntity<?> findById(@PathVariable      Integer userId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(userId));
         } catch (UserNotFoundException e) {
@@ -91,6 +92,17 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    @PostMapping("/owner/{ownerId}/vehicles/add")
+    public ResponseEntity<?> addVehicle(@PathVariable Integer ownerId , @RequestBody VehicleDTO vehicleDTO) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userService.addVehicle(ownerId ,vehicleDTO));
+        }catch (UserNotFoundException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 
 
 }

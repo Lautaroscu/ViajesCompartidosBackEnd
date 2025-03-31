@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,18 +36,31 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Recharge> recharges = new ArrayList<>();
+    @Column
+    private LocalDate registeredAt;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // Clave foránea en la tabla Vehicle
+    private List<Vehicle> vehicles = new ArrayList<>();
 
 
     public User() {
     }
 
-    public User(String firstName, String lastName, String phone , String email, String password ) {
+    public User(String firstName, String lastName, String phone , String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
         this.email = email;
         this.password = password;
         this.balance = BigDecimal.ZERO;
+        this.registeredAt = LocalDate.now();
+    }
+    public void addRecharge(Recharge recharge) {
+        recharges.add(recharge);
+    }
+    public void addVehicle(Vehicle vehicle) {
+        vehicles.add(vehicle);
     }
 
     @Override

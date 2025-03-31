@@ -23,10 +23,13 @@ public class Trip {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int tripId;
-    @Column(nullable = false)
-    private String origin;
-    @Column(nullable = false)
-    private String destination;
+    @ManyToOne
+    @JoinColumn(name = "origin_id", nullable = false)
+    private Location origin; // Ahora es un objeto en lugar de un String
+
+    @ManyToOne
+    @JoinColumn(name = "destination_id", nullable = false)
+    private Location destination; // También es un objeto
     @Column
     private LocalDateTime date;
     @Column(name = "max_passengers")
@@ -58,7 +61,7 @@ public class Trip {
     private Chat chat;
 
     public Trip() {}
-    public Trip(String origin, String destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment , boolean isPrivate ) {
+    public Trip(Location origin, Location destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment , boolean isPrivate ) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;

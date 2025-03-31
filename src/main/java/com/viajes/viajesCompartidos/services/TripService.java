@@ -11,17 +11,14 @@ import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
-import com.viajes.viajesCompartidos.entities.Chat;
-import com.viajes.viajesCompartidos.entities.JoinRequest;
-import com.viajes.viajesCompartidos.entities.Trip;
+import com.viajes.viajesCompartidos.entities.*;
 
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
-import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
+import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
-import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.*;
 
@@ -30,18 +27,13 @@ import com.viajes.viajesCompartidos.repositories.payments.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.viajes.viajesCompartidos.entities.User;
 
 @Service
 public class TripService {
@@ -49,6 +41,7 @@ public class TripService {
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
     private final JoinRequestRepository joinRequestRepository;
+    private final LocationRepository locationRepository;
     private final double tolerance;
     private static final Map<Integer, Double> REFUND_POLICY = Map.of(
             24, 1.0,  // 100% de reembolso
@@ -59,11 +52,12 @@ public class TripService {
 
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
         this.joinRequestRepository = joinRequestRepository;
+        this.locationRepository = locationRepository;
         this.tolerance = 5.0;
 
     }
@@ -126,12 +120,30 @@ public class TripService {
 
     public OutputTripDTO saveTrip(InputTripDTO trip) {
         User owner = userRepository.findById(trip.getOwnerId()).orElseThrow(() -> new UserNotFoundException("User not found"));
-        if (isBadRequest(trip)) {
-            throw new BadRequestException("Bad Request , check the fields and try again");
-        }
+        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseGet(()-> {
+            Location location = new Location();
+            location.setLongitude(trip.getOrigin().getCityLongitude());
+            location.setExactPlace(trip.getOrigin().getExactPlace());
+            location.setCity(trip.getOrigin().getCityName());
+            locationRepository.save(location);
+            return location;
+
+        });
+        origin.setExactPlace(trip.getOrigin().getExactPlace());
+        Location destination = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseGet(()-> {
+            Location location = new Location();
+            location.setLongitude(trip.getDestination().getCityLongitude());
+            location.setLatitude(trip.getDestination().getCityLatitude());
+            location.setExactPlace(trip.getDestination().getExactPlace());
+            location.setCity(trip.getDestination().getCityName());
+            locationRepository.save(location);
+            return location;
+        });
+        destination.setExactPlace(trip.getDestination().getExactPlace());
 
 
-        Trip newTrip = new Trip(trip.getOrigin(), trip.getDestination(), trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.isPrivate());
+
+        Trip newTrip = new Trip(origin , destination , trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.isPrivate());
 
         newTrip = tripRepository.save(newTrip);
         Chat newChat = new Chat();
@@ -147,11 +159,13 @@ public class TripService {
     public OutputTripDTO updateTrip(InputTripDTO trip, int tripId) {
 
         Trip tripUpdated = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(()-> new InvalidLocationException("Location not found"));
+        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(()-> new InvalidLocationException("Location not found"));
         if (isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
-        tripUpdated.setOrigin(trip.getOrigin());
-        tripUpdated.setDestination(trip.getDestination());
+        tripUpdated.setOrigin(origin);
+        tripUpdated.setDestination(destination);
         tripUpdated.setDate(trip.getDate());
         if (trip.getMaxPassengers() < tripUpdated.getCountPassengers())
             throw new IllegalArgumentException("Max passengers could not be lower than the count of passengers on board");
@@ -174,7 +188,8 @@ public class TripService {
     }
 
     private boolean isBadRequest(InputTripDTO trip) {
-        return trip.getOrigin() == null || trip.getDestination() == null || trip.getDate() == null || trip.getMaxPassengers() == 0;
+
+        return trip.getDate() == null || trip.getMaxPassengers() == 0;
     }
 
     public List<OutputUserDTO> getPassengers(int tripId) {

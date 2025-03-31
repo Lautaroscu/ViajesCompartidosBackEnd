@@ -1,5 +1,7 @@
 package com.viajes.viajesCompartidos.DTO.trip;
 
+import com.viajes.viajesCompartidos.DTO.location.InputLocationDTO;
+import com.viajes.viajesCompartidos.entities.Location;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,8 +12,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class InputTripDTO implements Serializable {
-    private String origin;
-    private String destination;
+    private InputLocationDTO origin;
+    private InputLocationDTO destination;
     private LocalDateTime date;
     private int ownerId;
     private int maxPassengers;
@@ -21,7 +23,7 @@ public class InputTripDTO implements Serializable {
     private boolean isPrivate;
 
     public InputTripDTO() {}
-    public InputTripDTO(String origin, String destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status , boolean isPrivate) {
+    public InputTripDTO(InputLocationDTO origin, InputLocationDTO destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status , boolean isPrivate) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;

@@ -3,15 +3,13 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
-import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
-import com.viajes.viajesCompartidos.DTO.chat.MessageDTO;
 import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
 import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
-import com.viajes.viajesCompartidos.exceptions.trips.InvalidLocationException;
+import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
@@ -24,8 +22,6 @@ import com.viajes.viajesCompartidos.services.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 
