@@ -63,6 +63,7 @@
                     .authorizeHttpRequests((authorize) -> authorize
                             .requestMatchers("/api/auth/**").permitAll()
                                     .requestMatchers("/api/recharges/webhook").permitAll()
+                                    .requestMatchers("/api/geonames/**").permitAll()
                                     .requestMatchers("/chat/**").permitAll()// Permitir acceso sin autenticación para /api/auth/**
                             .anyRequest().authenticated()
                             // Requiere autenticación para otras solicitudes
