@@ -3,11 +3,9 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
-import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
+import com.viajes.viajesCompartidos.DTO.trip.*;
 import com.viajes.viajesCompartidos.enums.TripStatus;
+import com.viajes.viajesCompartidos.enums.TripType;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
@@ -42,19 +40,21 @@ public class TripController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OutputTripDTO>> getTrips(
+    public ResponseEntity<List<OutputTripPreviewDTO>> getTrips(
             @RequestParam(name = "origin", required = false) String origin,
             @RequestParam(name = "destination", required = false) String destination,
             @RequestParam(name = "userId", required = false) Integer userId,
             @RequestParam(name = "startDate", required = false) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) LocalDateTime endDate,
             @RequestParam(name = "passengers", required = false) Integer passengers,
+            @RequestParam(name = "maxPrice" , required = false) Double maxPrice,
             @RequestParam(name = "sort", required = false, defaultValue = "price") String sort,
-            @RequestParam(name = "order", required = false, defaultValue = "asc") String order // Parámetro de orden
+            @RequestParam(name = "order", required = false, defaultValue = "asc") String order , // Parámetro de orden
+            @RequestParam(name = "tripType" , required = false) TripType tripType
 
 
-    ) {
-        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate);
+            ) {
+        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate , maxPrice , tripType);
         return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO, sort, order));
     }
     @PostMapping("/passengers")

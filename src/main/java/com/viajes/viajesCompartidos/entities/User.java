@@ -39,15 +39,25 @@ public class User {
     @Column
     private LocalDate registeredAt;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id") // Clave foránea en la tabla Vehicle
+    @OneToMany(mappedBy = "owner" ,cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Vehicle> vehicles = new ArrayList<>();
+
+    @Column(name = "valoration", precision = 3, scale = 2, nullable = false)
+    private BigDecimal valoration;
+    @Column
+    private String residenceCity;
 
 
     public User() {
+        registeredAt = LocalDate.now();
+        vehicles = new ArrayList<>();
+        valoration = BigDecimal.ZERO;
+        balance = BigDecimal.ZERO;
+
     }
 
-    public User(String firstName, String lastName, String phone , String email, String password) {
+    public User(String firstName, String lastName, String phone , String email, String password  , String residenceCity) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
@@ -55,6 +65,8 @@ public class User {
         this.password = password;
         this.balance = BigDecimal.ZERO;
         this.registeredAt = LocalDate.now();
+        this.valoration = BigDecimal.ZERO;
+        this.residenceCity = residenceCity;
     }
     public void addRecharge(Recharge recharge) {
         recharges.add(recharge);

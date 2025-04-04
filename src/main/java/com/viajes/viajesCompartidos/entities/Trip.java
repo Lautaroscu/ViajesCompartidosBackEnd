@@ -1,6 +1,7 @@
 package com.viajes.viajesCompartidos.entities;
 
 import com.viajes.viajesCompartidos.enums.TripStatus;
+import com.viajes.viajesCompartidos.enums.TripType;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
@@ -54,14 +55,15 @@ public class Trip {
     )
     private List<User> passengers;
     @Column
-    private boolean isPrivate;
+    @Enumerated(EnumType.STRING)
+    private TripType tripType;
 
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Chat chat;
 
     public Trip() {}
-    public Trip(Location origin, Location destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment , boolean isPrivate ) {
+    public Trip(Location origin, Location destination, LocalDateTime date, User owner , int maxPassengers ,double price , String comment , TripType tripType ) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;
@@ -72,7 +74,7 @@ public class Trip {
         this.price = price;
         this.comment = comment;
         this.status = TripStatus.PENDING;
-        this.isPrivate = isPrivate;
+        this.tripType = tripType;
     }
 
 

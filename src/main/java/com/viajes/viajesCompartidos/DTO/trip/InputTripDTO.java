@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.DTO.trip;
 import com.viajes.viajesCompartidos.DTO.location.InputLocationDTO;
 import com.viajes.viajesCompartidos.entities.Location;
 import com.viajes.viajesCompartidos.enums.TripStatus;
+import com.viajes.viajesCompartidos.enums.TripType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,10 +21,10 @@ public class InputTripDTO implements Serializable {
     private double price;
     private String comment;
     private TripStatus status;
-    private boolean isPrivate;
+    private TripType tripType;
 
     public InputTripDTO() {}
-    public InputTripDTO(InputLocationDTO origin, InputLocationDTO destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status , boolean isPrivate) {
+    public InputTripDTO(InputLocationDTO origin, InputLocationDTO destination, LocalDateTime date, int ownerId,int maxPassengers , double price, String comment , TripStatus status , TripType tripType) {
         this.origin = origin;
         this.destination = destination;
         this.date = date;
@@ -32,7 +33,7 @@ public class InputTripDTO implements Serializable {
         this.price = price;
         this.comment = comment;
         this.status = status;
-        this.isPrivate = isPrivate;
+        this.tripType = tripType;
 
     }
 }

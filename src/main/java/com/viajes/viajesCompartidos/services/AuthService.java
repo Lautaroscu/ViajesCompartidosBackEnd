@@ -44,7 +44,7 @@ public class AuthService {
             throw new RuntimeException("Passwords do not match");
         }
 
-        User user = new User(userDTO.getName(), userDTO.getLastName(), userDTO.getPhoneNumber(), userDTO.getEmail(), passwordEncoder.encode(userDTO.getPassword()));
+        User user = new User(userDTO.getName(), userDTO.getLastName(), userDTO.getPhoneNumber(), userDTO.getEmail(), passwordEncoder.encode(userDTO.getPassword()) , userDTO.getResidenceCity());
         userRepository.save(user);
     }
 

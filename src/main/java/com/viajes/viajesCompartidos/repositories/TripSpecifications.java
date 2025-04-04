@@ -2,6 +2,7 @@ package com.viajes.viajesCompartidos.repositories;
 
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.enums.TripStatus;
+import com.viajes.viajesCompartidos.enums.TripType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -101,6 +102,24 @@ public class TripSpecifications {
             return builder.equal(root.get("status"), status);
         };
     }
+    public static Specification<Trip> maxPrice(Double maxPrice) {
+        return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
+            if (maxPrice == null || maxPrice < 0) {
+                return builder.conjunction();
+            }
+            return builder.lessThanOrEqualTo(root.get("price"), maxPrice);
+        };
+    }
+    public static Specification<Trip> tripType(TripType tripType) {
+        return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {
+            if (tripType == null)
+                return builder.conjunction();
+
+
+            return builder.equal(root.get("tripType"), tripType);
+        };
+    }
+
 
 
 

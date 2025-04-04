@@ -2,29 +2,52 @@ package com.viajes.viajesCompartidos.DTO.trip;
 
 import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
 import com.viajes.viajesCompartidos.DTO.location.OutputLocationDTO;
+import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.enums.TripStatus;
+import com.viajes.viajesCompartidos.enums.TripType;
 import lombok.Getter;
 import com.viajes.viajesCompartidos.entities.User;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class OutputTripDTO  implements Serializable  {
     private int tripId;
-    private OutputLocationDTO origin_location;
-    private OutputLocationDTO destination_location;
-    private int passengersCount;
+    private OutputLocationDTO origin;
+    private OutputLocationDTO destination;
+    private List<OutputUserDTO> passengers;
+    private User owner;
+    private int maxPassengers;
+    private  int countOfPassengers;
+    private TripStatus trip_status;
+    private TripType tripType;
+    private Double price;
+    private LocalDateTime date;
+
     private ChatDTO chat;
 
     public OutputTripDTO()  {}
     public OutputTripDTO(Trip trip) {
        this.tripId = trip.getTripId();
-       this.passengersCount = trip.getCountPassengers();
-       this.origin_location = new OutputLocationDTO(trip.getOrigin());
-       this.destination_location = new OutputLocationDTO(trip.getDestination());
+       this.origin= new OutputLocationDTO(trip.getOrigin());
+       this.destination = new OutputLocationDTO(trip.getDestination());
+       this.passengers = trip.getPassengers().stream().map(OutputUserDTO::new).collect(Collectors.toList());
+       this.owner = trip.getOwner();
+       this.maxPassengers = trip.getMaxPassengers();
+       this.countOfPassengers = trip.getPassengers().size();
+       this.trip_status = trip.getStatus();
+       this.tripType = trip.getTripType();
+       this.chat = new ChatDTO(trip.getChat());
+       this.date = trip.getDate();
+       this.price = trip.getPrice();
 
     }
+
 
     public void setChat(ChatDTO chat) {
         this.chat = chat;

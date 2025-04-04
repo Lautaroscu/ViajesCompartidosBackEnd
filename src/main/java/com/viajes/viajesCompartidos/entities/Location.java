@@ -23,6 +23,9 @@ public class Location {
     @Column(nullable = false)
     private double longitude;
 
+
+
+
     public Location() {}
 
     public Location(String city, String exactPlace, double latitude, double longitude) {

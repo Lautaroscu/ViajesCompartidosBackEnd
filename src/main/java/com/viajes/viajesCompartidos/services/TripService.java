@@ -6,10 +6,7 @@ import java.text.Normalizer;
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
-import com.viajes.viajesCompartidos.DTO.trip.CompleteTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.FilterTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.InputTripDTO;
-import com.viajes.viajesCompartidos.DTO.trip.OutputTripDTO;
+import com.viajes.viajesCompartidos.DTO.trip.*;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.entities.*;
 
@@ -17,6 +14,7 @@ import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
+import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
@@ -62,7 +60,7 @@ public class TripService {
 
     }
 
-    public List<OutputTripDTO> findAll(FilterTripDTO filterTripDTO, String sort, String direction) {
+    public List<OutputTripPreviewDTO> findAll(FilterTripDTO filterTripDTO, String sort, String direction) {
         boolean isValidSort = Arrays.stream(Trip.class.getDeclaredFields())
                 .anyMatch(field -> field.getName().equals(sort));
 
@@ -74,18 +72,20 @@ public class TripService {
         Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getMax_passengers());
         Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate(), filterTripDTO.getEndDate());
         Specification<Trip> availabilityFilter = TripSpecifications.isAvailableForUser(filterTripDTO.getUserId());
+        Specification<Trip> maxPrice = TripSpecifications.maxPrice(filterTripDTO.getMaxPrice()) ;
 
 
         Specification<Trip> spec = Specification.where(originFilter)
                 .and(destinationFilter)
                 .and(passengersFilter)
                 .and(dateFilter)
-                .and(availabilityFilter);
+                .and(availabilityFilter)
+                .and(maxPrice);
         return tripRepository
 
                 .findAll(spec, isValidSort ? Sort.by(sortDirection, sort) : Sort.unsorted())
                 .stream()
-                .map(OutputTripDTO::new)
+                .map(OutputTripPreviewDTO::new)
                 .toList();
 
     }
@@ -143,7 +143,7 @@ public class TripService {
 
 
 
-        Trip newTrip = new Trip(origin , destination , trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.isPrivate());
+        Trip newTrip = new Trip(origin , destination , trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(),trip.getTripType() );
 
         newTrip = tripRepository.save(newTrip);
         Chat newChat = new Chat();
@@ -159,8 +159,8 @@ public class TripService {
     public OutputTripDTO updateTrip(InputTripDTO trip, int tripId) {
 
         Trip tripUpdated = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
-        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(()-> new InvalidLocationException("Location not found"));
-        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(()-> new InvalidLocationException("Location not found"));
+        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(()-> new LocationNotFoundException("Location not found"));
+        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(()-> new LocationNotFoundException("Location not found"));
         if (isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
@@ -172,7 +172,7 @@ public class TripService {
         tripUpdated.setMaxPassengers(trip.getMaxPassengers());
         tripUpdated.setComment(trip.getComment());
         tripUpdated.setPrice(trip.getPrice());
-        tripUpdated.setPrivate(trip.isPrivate());
+        tripUpdated.setTripType(trip.getTripType());
         tripUpdated = tripRepository.save(tripUpdated);
 
         return new OutputTripDTO(tripUpdated);

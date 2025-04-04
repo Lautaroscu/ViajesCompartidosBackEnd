@@ -11,19 +11,24 @@ import java.math.BigDecimal;
 @Setter
 public class OutputUserDTO implements Serializable {
     private int id;
-    private String name;
+    private String firstName;
     private String email;
+    private String residenceCity;
     private String lastName;
     private String phoneNumber;
     private BigDecimal balance;
+    private BigDecimal valoration;
+
 
     public OutputUserDTO(User user) {
         this.id = user.getUserId();
-        this.name = user.getFirstName();
+        this.firstName = user.getFirstName();
         this.email = user.getEmail();
+        this.residenceCity = user.getResidenceCity();
         this.lastName = user.getLastName();
         this.phoneNumber = user.getPhone();
         this.balance = user.getBalance();
+        this.valoration = user.getValoration();
     }
 
 }
