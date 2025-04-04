@@ -68,18 +68,11 @@ public class AuthController {
 
             int userId = userService.getUser(request.getEmail()).getId();
 
-            Cookie userCookie = new Cookie("uuuaaa", String.valueOf(userId));
 
-
-            userCookie.setPath("/");
-            userCookie.setMaxAge(24 * 60 * 60);
-            userCookie.setHttpOnly(false);
-            userCookie.setSecure(false);
             response.addCookie(jwtCookie);
-            response.addCookie(userCookie);
 
             loginAttemptService.loginSucceeded(request.getEmail());
-            return ResponseEntity.ok(Map.of("authenticated", true));
+            return ResponseEntity.ok(Map.of("authenticated", true , "userId", userId));
         }
         catch (InvalidCredentialsException e) {
             loginAttemptService.loginFailed(request.getEmail());
