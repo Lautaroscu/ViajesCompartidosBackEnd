@@ -16,7 +16,7 @@ public class OutputUserDTO implements Serializable {
     private String residenceCity;
     private String lastName;
     private String phoneNumber;
-    private BigDecimal balance;
+    private Long walletId;
     private BigDecimal valoration;
 
 
@@ -27,7 +27,7 @@ public class OutputUserDTO implements Serializable {
         this.residenceCity = user.getResidenceCity();
         this.lastName = user.getLastName();
         this.phoneNumber = user.getPhone();
-        this.balance = user.getBalance();
+        this.walletId = user.getWallet().getId();
         this.valoration = user.getValoration();
     }
 

@@ -81,7 +81,7 @@ public class Trip {
 
 
     public void addPassenger(User passenger) {
-        if(passenger.getBalance().doubleValue() < this.getPrice()){
+        if(passenger.getWallet().getBalance().doubleValue() < this.getPrice()){
             throw new NotEnoughBalanceException("Not enough balance");
         }
         if(passengers.contains(passenger)) {

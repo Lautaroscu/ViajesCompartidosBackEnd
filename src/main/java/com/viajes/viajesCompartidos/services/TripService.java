@@ -8,8 +8,11 @@ import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
+import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
 import com.viajes.viajesCompartidos.entities.*;
 
+import com.viajes.viajesCompartidos.entities.payments.Wallet;
+import com.viajes.viajesCompartidos.enums.TransactionType;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
@@ -22,6 +25,7 @@ import com.viajes.viajesCompartidos.repositories.*;
 
 
 import com.viajes.viajesCompartidos.repositories.payments.PaymentRepository;
+import com.viajes.viajesCompartidos.services.payments.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,6 +44,7 @@ public class TripService {
     private final ChatRepository chatRepository;
     private final JoinRequestRepository joinRequestRepository;
     private final LocationRepository locationRepository;
+    private final WalletService walletService;
     private final double tolerance;
     private static final Map<Integer, Double> REFUND_POLICY = Map.of(
             24, 1.0,  // 100% de reembolso
@@ -50,12 +55,13 @@ public class TripService {
 
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
         this.joinRequestRepository = joinRequestRepository;
         this.locationRepository = locationRepository;
+        this.walletService = walletService;
         this.tolerance = 5.0;
 
     }
@@ -97,11 +103,16 @@ public class TripService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
 
+
         // Intenta agregar el pasajero; si falla, se lanzará una excepción específica
         trip.addPassenger(user);
         BigDecimal tripPrice = BigDecimal.valueOf(trip.getPrice());
-        user.setBalance(user.getBalance().subtract(tripPrice));
-        userRepository.save(user);
+        TransactionDTO expense = new TransactionDTO();
+        expense.setAmount(tripPrice);
+        expense.setTransactionType(TransactionType.EXPENSE);
+
+        walletService.addTransaction(user.getUserId() , expense);
+
         // Persistir los cambios en la base de datos
         tripRepository.save(trip);
         return new OutputTripPassengerDTO(user, trip);
@@ -210,8 +221,10 @@ public class TripService {
         long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
         double refund = TripService.calculateRefund(trip.getPrice(), hoursDiff);
         BigDecimal refundAmount = new BigDecimal(refund);
-        user.setBalance(user.getBalance().add(refundAmount));
-        userRepository.save(user);
+        TransactionDTO refundTransactionDTO = new TransactionDTO();
+        refundTransactionDTO.setAmount(refundAmount);
+        refundTransactionDTO.setTransactionType(TransactionType.RECHARGE);
+        walletService.addTransaction(user.getUserId() ,refundTransactionDTO);
         tripRepository.save(trip);
         joinRequestRepository.delete(joinRequest);
         joinRequestRepository.flush();

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class OutputTripPassengerDTO implements Serializable {
     private String userName;
     private  String userLastName;
-    private BigDecimal userBalance;
+    private Long walletId;
     private int tripId;
     private OutputLocationDTO origin;
     private OutputLocationDTO destination;
@@ -22,7 +22,7 @@ public class OutputTripPassengerDTO implements Serializable {
     public OutputTripPassengerDTO(User user, Trip trip) {
         this.userName = user.getFirstName();
         this.userLastName = user.getLastName();
-        this.userBalance = user.getBalance();
+        this.walletId = user.getWallet().getId();
         this.origin = new OutputLocationDTO(trip.getOrigin());
         this.destination = new OutputLocationDTO(trip.getDestination());
         this.tripId = trip.getTripId();

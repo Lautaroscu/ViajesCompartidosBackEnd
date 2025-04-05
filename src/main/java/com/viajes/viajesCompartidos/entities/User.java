@@ -2,6 +2,7 @@ package com.viajes.viajesCompartidos.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.viajes.viajesCompartidos.entities.payments.Recharge;
+import com.viajes.viajesCompartidos.entities.payments.Wallet;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,8 +32,9 @@ public class User {
     private String email;
     @Column
     private String password;
-    @Column
-    private BigDecimal balance;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Wallet wallet;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Recharge> recharges = new ArrayList<>();
@@ -53,20 +55,20 @@ public class User {
         registeredAt = LocalDate.now();
         vehicles = new ArrayList<>();
         valoration = BigDecimal.ZERO;
-        balance = BigDecimal.ZERO;
+        wallet = new Wallet(this);
 
     }
 
-    public User(String firstName, String lastName, String phone , String email, String password  , String residenceCity) {
+    public User(String firstName, String lastName, String phone , String email, String password  , String residenceCity ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
         this.email = email;
         this.password = password;
-        this.balance = BigDecimal.ZERO;
         this.registeredAt = LocalDate.now();
         this.valoration = BigDecimal.ZERO;
         this.residenceCity = residenceCity;
+        this.wallet = new Wallet(this);
     }
     public void addRecharge(Recharge recharge) {
         recharges.add(recharge);
@@ -85,7 +87,10 @@ public class User {
 
     }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = BigDecimal.valueOf(balance.doubleValue());
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
+        if(wallet != null) {
+            wallet.setUser(this);
+        }
     }
 }

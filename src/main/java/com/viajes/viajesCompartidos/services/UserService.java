@@ -82,48 +82,9 @@ public class UserService {
         return dto.getName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
     }
 
-    public OutputUserDTO updateBalance(int userId, BalanceDTO userBalance) {
-        User userById = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
-        if (userBalance.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException("Balance could not be negative");
-        }
-        userById.setBalance(userBalance.getBalance());
-        userRepository.save(userById);
-        return new OutputUserDTO(userById);
-    }
-    public void subtractBalance(int userId, BalanceDTO userBalance) {
-        User userById = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        BigDecimal currentBalance = userById.getBalance();
-        BigDecimal amountToSubtract = userBalance.getBalance();
 
-        if (amountToSubtract.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Amount to subtract must be positive");
-        }
 
-        if (currentBalance.compareTo(amountToSubtract) < 0) {
-            throw new BadRequestException("Insufficient balance");
-        }
-
-        userById.setBalance(currentBalance.subtract(amountToSubtract));
-        userRepository.save(userById);
-    }
-
-    public void addBalance(int userId, BalanceDTO userBalance) {
-        User userById = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        BigDecimal currentBalance = userById.getBalance();
-        BigDecimal amountToAdd = userBalance.getBalance();
-
-        if (amountToAdd.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Amount to add must be positive");
-        }
-
-        userById.setBalance(currentBalance.add(amountToAdd));
-        userRepository.save(userById);
-    }
 
 
     public VehicleDTO addVehicle(Integer ownerId, VehicleDTO vehicleDTO) {
