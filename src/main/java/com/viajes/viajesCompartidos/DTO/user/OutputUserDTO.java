@@ -1,6 +1,8 @@
 package com.viajes.viajesCompartidos.DTO.user;
 
+import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.entities.User;
+import com.viajes.viajesCompartidos.entities.Vehicle;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +20,7 @@ public class OutputUserDTO implements Serializable {
     private String phoneNumber;
     private Long walletId;
     private BigDecimal valoration;
+    private VehicleDTO vehiclePredetermined;
 
 
     public OutputUserDTO(User user) {
@@ -29,6 +32,7 @@ public class OutputUserDTO implements Serializable {
         this.phoneNumber = user.getPhone();
         this.walletId = user.getWallet().getId();
         this.valoration = user.getValoration();
+        this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredeterminated).map(VehicleDTO::new).findFirst().orElse(null);
     }
 
 }

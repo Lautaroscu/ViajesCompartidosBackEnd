@@ -12,6 +12,7 @@ import java.io.Serializable;
 public class GeoCity implements Serializable {
     private String adminCode1;
     private String lng;
+    private String lat;
     private int geonameId;
     private String toponymName;
     private String countryId;

@@ -21,9 +21,13 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Message> messages;
-
-    public Chat() {
+public  Chat() {
+    this.messages = new ArrayList<>();
+}
+    public Chat(Trip trip) {
         this.messages = new ArrayList<>();
+        this.trip = trip;
+
 
     }
 

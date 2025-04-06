@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class TripService {
@@ -131,17 +132,24 @@ public class TripService {
 
     public OutputTripDTO saveTrip(InputTripDTO trip) {
         User owner = userRepository.findById(trip.getOwnerId()).orElseThrow(() -> new UserNotFoundException("User not found"));
-        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseGet(()-> {
-            Location location = new Location();
-            location.setLongitude(trip.getOrigin().getCityLongitude());
-            location.setExactPlace(trip.getOrigin().getExactPlace());
-            location.setCity(trip.getOrigin().getCityName());
-            locationRepository.save(location);
-            return location;
-
+        Optional<Location> maybeLocationOrigin = locationRepository.findByCityAndExactPlace(
+                trip.getOrigin().getCityName(),
+                trip.getOrigin().getExactPlace()
+        );
+        Location origin = maybeLocationOrigin.orElseGet(() -> {
+            Location loc = new Location();
+            loc.setCity(trip.getOrigin().getCityName());
+            loc.setLatitude(trip.getOrigin().getCityLatitude());
+            loc.setLongitude(trip.getOrigin().getCityLongitude());
+            loc.setExactPlace(trip.getOrigin().getExactPlace());
+            return locationRepository.save(loc);
         });
-        origin.setExactPlace(trip.getOrigin().getExactPlace());
-        Location destination = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseGet(()-> {
+        Optional<Location> maybeLocationDestination = locationRepository.findByCityAndExactPlace(
+                trip.getOrigin().getCityName(),
+                trip.getOrigin().getExactPlace()
+        );
+
+        Location destination = maybeLocationDestination.orElseGet(()-> {
             Location location = new Location();
             location.setLongitude(trip.getDestination().getCityLongitude());
             location.setLatitude(trip.getDestination().getCityLatitude());
@@ -150,19 +158,15 @@ public class TripService {
             locationRepository.save(location);
             return location;
         });
-        destination.setExactPlace(trip.getDestination().getExactPlace());
+
 
 
 
         Trip newTrip = new Trip(origin , destination , trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(),trip.getTripType() );
 
         newTrip = tripRepository.save(newTrip);
-        Chat newChat = new Chat();
-        newChat.setTrip(newTrip);
-        newChat = chatRepository.save(newChat);
-        OutputTripDTO outputTripDTO = new OutputTripDTO(newTrip);
-        outputTripDTO.setChat(new ChatDTO(newChat));
-        return outputTripDTO;
+
+        return new OutputTripDTO(newTrip);
 
 
     }

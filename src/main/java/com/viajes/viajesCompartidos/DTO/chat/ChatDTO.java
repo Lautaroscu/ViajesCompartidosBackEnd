@@ -2,51 +2,43 @@ package com.viajes.viajesCompartidos.DTO.chat;
 
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.entities.Chat;
-import com.viajes.viajesCompartidos.entities.Message;
-import com.viajes.viajesCompartidos.entities.Trip;
-import com.viajes.viajesCompartidos.entities.User;
+import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
 public class ChatDTO implements Serializable {
     private List<MessageDTO> messages;
     private int id;
     private int tripId;
-    private List<OutputUserDTO> integrants;
-    public ChatDTO() {}
-    public ChatDTO(List<MessageDTO> messages, int id, List<OutputUserDTO> integrants , int tripId) {
+    private List<String> integrants  = new ArrayList<>();
+
+    public ChatDTO() {
+    }
+
+    public ChatDTO(List<MessageDTO> messages, int id, List<String> integrants, int tripId) {
         this.messages = messages;
         this.id = id;
         this.integrants = integrants;
         this.tripId = tripId;
     }
+
     public ChatDTO(Chat chat) {
         id = chat.getId();
         this.tripId = chat.getTrip().getTripId();
-        integrants = chat.getTrip().getPassengers().stream().map(OutputUserDTO::new).collect(Collectors.toList());
+
         OutputUserDTO ownerDTO = new OutputUserDTO(chat.getTrip().getOwner());
-        integrants.add(ownerDTO);
+        integrants = new ArrayList<>();
+        integrants.add(ownerDTO.getFirstName() + " " + ownerDTO.getLastName());
+        integrants.addAll(chat.getTrip().getPassengers().stream()
+                .map(user -> user.getFirstName() + " " + user.getLastName())
+                .toList());
+
         messages = chat.getMessages().stream().map(MessageDTO::new).collect(Collectors.toList());
     }
-    public int getId() {
-        return id;
-    }
 
-    public List<MessageDTO> getMessages() {
-        return messages;
-    }
 
-    public List<OutputUserDTO> getIntegrants() {
-        return integrants;
-    }
-
-    public int getTripId() {
-        return tripId;
-    }
-
-    public void setTripId(int tripId) {
-        this.tripId = tripId;
-    }
 }

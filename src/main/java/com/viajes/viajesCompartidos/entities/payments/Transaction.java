@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.entities.payments;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.enums.TransactionStatus;
 import com.viajes.viajesCompartidos.enums.TransactionType;
@@ -28,6 +29,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "wallet_id", nullable = false)
+    @JsonBackReference
     private Wallet wallet;
 
     private String description; // Opcional, por si querés agregar algo como "Unión a viaje #42"

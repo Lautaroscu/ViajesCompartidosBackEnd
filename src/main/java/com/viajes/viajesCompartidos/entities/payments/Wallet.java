@@ -1,5 +1,7 @@
 package com.viajes.viajesCompartidos.entities.payments;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.viajes.viajesCompartidos.entities.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,9 +24,11 @@ public class Wallet {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Transaction> transactions;
 
     public Wallet() {

@@ -75,6 +75,7 @@ public class Trip {
         this.comment = comment;
         this.status = TripStatus.PENDING;
         this.tripType = tripType;
+        this.chat = new Chat(this);
     }
 
 

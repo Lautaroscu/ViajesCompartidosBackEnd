@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+
+
 public class InputTripDTO implements Serializable {
     private InputLocationDTO origin;
     private InputLocationDTO destination;
