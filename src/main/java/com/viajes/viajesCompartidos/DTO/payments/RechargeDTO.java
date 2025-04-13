@@ -17,6 +17,7 @@ public class RechargeDTO implements Serializable {
     private BigDecimal amount;
     private String paymentType;
     private LocalDateTime dateCreated;
+    private String paymentMethod;
 
     public RechargeDTO(Recharge recharge) {
         this.userId = recharge.getUser().getUserId();

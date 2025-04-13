@@ -32,7 +32,7 @@ public class OutputUserDTO implements Serializable {
         this.phoneNumber = user.getPhone();
         this.walletId = user.getWallet().getId();
         this.valoration = user.getValoration();
-        this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredeterminated).map(VehicleDTO::new).findFirst().orElse(null);
+        this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredetermined).map(VehicleDTO::new).findFirst().orElse(null);
     }
 
 }

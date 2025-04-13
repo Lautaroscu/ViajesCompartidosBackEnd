@@ -3,10 +3,7 @@ package com.viajes.viajesCompartidos.repositories;
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.enums.TripType;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
@@ -25,32 +22,35 @@ public class TripSpecifications {
         };
     }
 
-    // Excluir viajes del propietario y cancelados
     public static Specification<Trip> isAvailableForUser(Integer userId) {
-
         return (root, query, criteriaBuilder) -> {
-            if(userId == null) {
+            if (userId == null) {
                 return criteriaBuilder.conjunction();
             }
+
             // Excluir los viajes donde el propietario sea el usuario
             Predicate ownerPredicate = criteriaBuilder.notEqual(root.get("owner").get("userId"), userId);
 
             // Excluir los viajes que están cancelados
             Predicate statusPredicate = criteriaBuilder.notEqual(root.get("status"), TripStatus.CANCELED);
 
-            // Excluir los viajes donde el usuario ya es un pasajero
-            Predicate passengersPredicate = criteriaBuilder.not(
-                    criteriaBuilder.exists(
-                            // Subconsulta para comprobar si el userId está en la lista de pasajeros
-                            query.subquery(Integer.class).select(root.get("passengers"))
-                                    .where(criteriaBuilder.equal(root.get("passengers").get("userId"), userId))
-                    )
-            );
+            // Subconsulta para comprobar si el userId ya es pasajero en el viaje
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<Trip> subRoot = subquery.from(Trip.class);
+            Join<Object, Object> subPassengers = subRoot.join("passengers");
 
-            // Combina todas las condiciones
+            subquery.select(criteriaBuilder.literal(1L)) // no importa el valor seleccionado
+                    .where(
+                            criteriaBuilder.equal(subRoot.get("id"), root.get("id")), // mismo viaje
+                            criteriaBuilder.equal(subPassengers.get("userId"), userId) // user es pasajero
+                    );
+
+            Predicate passengersPredicate = criteriaBuilder.not(criteriaBuilder.exists(subquery));
+
             return criteriaBuilder.and(ownerPredicate, statusPredicate, passengersPredicate);
         };
     }
+
 
     public static Specification<Trip> isEqualDestination(String destination) {
         return (Root<Trip> root, CriteriaQuery<?> query, CriteriaBuilder builder) -> {

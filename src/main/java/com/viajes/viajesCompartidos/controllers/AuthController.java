@@ -4,9 +4,9 @@ import com.viajes.viajesCompartidos.DTO.auth.InputAuthDTO;
 
 import com.viajes.viajesCompartidos.DTO.auth.InputRegisterDTO;
 
+import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
 
-import com.viajes.viajesCompartidos.exceptions.TooManyAttemptsException;
 import com.viajes.viajesCompartidos.services.AuthService;
 import com.viajes.viajesCompartidos.services.LoginAttemptService;
 import com.viajes.viajesCompartidos.services.UserService;
@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -48,6 +49,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
 
     @PostMapping("/login")
@@ -111,8 +113,17 @@ public class AuthController {
                     String token = cookie.getValue();
                     try {
                         // Validar el token
+                        boolean isAuth = authService.tokenValid(token);
+                        OutputUserDTO user=null;
+                        Map<String , Object> response = new HashMap<>();
+                        if (isAuth) {
+                            String email = authService.exctractUsername(token);
+                            user = userService.getUser(email);
+                        }
+                        response.put("authenticated", isAuth);
+                        response.put("user", user);
 
-                        return ResponseEntity.ok(Map.of("authenticated", authService.tokenValid(token)));
+                        return ResponseEntity.ok(response);
                     } catch (ExpiredJwtException e) {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
                     } catch (Exception e) {

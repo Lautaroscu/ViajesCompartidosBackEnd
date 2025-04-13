@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -53,5 +54,14 @@ public class WalletService {
     public WalletDTO getWallet(Integer userId) {
         Wallet wallet = walletRepository.findByUserId(userId).orElseThrow(()->new EntityNotFoundException("Wallet not found"));
         return new WalletDTO(wallet);
+    }
+
+    public void updateBalance(Integer userId, BigDecimal amount) {
+
+
+        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow(()->new EntityNotFoundException("Wallet not found"));
+
+        wallet.setBalance(wallet.getBalance().add(amount));
+        walletRepository.save(wallet);
     }
 }

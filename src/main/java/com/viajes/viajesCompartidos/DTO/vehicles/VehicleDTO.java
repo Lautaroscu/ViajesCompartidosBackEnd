@@ -17,7 +17,8 @@ public class VehicleDTO implements Serializable {
     private String brand;
     private int seatingCapacity;
     private boolean available;
-    private boolean predeterminated;
+    private boolean predetermined;
+
 
     public VehicleDTO(Vehicle vehicle) {
         this.plate = vehicle.getPlate();
@@ -27,7 +28,7 @@ public class VehicleDTO implements Serializable {
         this.brand = vehicle.getBrand();
         this.seatingCapacity = vehicle.getSeatingCapacity();
         this.available = vehicle.isAvailable();
-        this.predeterminated = vehicle.isPredeterminated();
+        this.predetermined = vehicle.isPredetermined();
 
     }
 }

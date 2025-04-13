@@ -57,7 +57,7 @@
 
 
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain securityFilterChain(HttpSecurity http , CorsConfigurationSource corsConfigurationSource) throws Exception {
             http
                     .csrf(csrf -> csrf.disable()) // Desactiva CSRF usando la nueva API
                     .authorizeHttpRequests((authorize) -> authorize
@@ -68,7 +68,7 @@
                             .anyRequest().authenticated()
                             // Requiere autenticación para otras solicitudes
                     )
-                    .cors(withDefaults())
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource))
                     // Usar configuración de CORS
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -79,7 +79,7 @@
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "https://viajescompartidos1.netlify.app" ,"https://ridesahre.netlify.app" ,"https://www.mercadopago.com.ar")); // Frontend React
+            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "http://localhost:8080" , "https://viajescompartidos1.netlify.app" ,"https://ridesahre.netlify.app" ,"https://www.mercadopago.com.ar")); // Frontend React
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies

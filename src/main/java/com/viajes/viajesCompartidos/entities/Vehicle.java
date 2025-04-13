@@ -22,7 +22,7 @@ public class Vehicle {
     private int year;
     private int seatingCapacity;
     private boolean available;
-    private boolean predeterminated;
+    private boolean predetermined;
 
 
     @ManyToOne

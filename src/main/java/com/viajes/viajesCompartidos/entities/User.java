@@ -76,6 +76,21 @@ public class User {
     public void addVehicle(Vehicle vehicle) {
         vehicles.add(vehicle);
     }
+  public boolean deleteVehicle(Vehicle vehicle) {
+        return vehicles.remove(vehicle);
+  }
+    public boolean setVehiclePredetermined(String plate) {
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.isPredetermined()) {
+                vehicle.setPredetermined(false);
+            }
+            if (vehicle.getPlate().equals(plate)) {
+                vehicle.setPredetermined(true);
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean equals(Object obj) {

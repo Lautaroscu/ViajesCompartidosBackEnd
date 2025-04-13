@@ -39,7 +39,5 @@ public abstract class BaseTransactionStrategy implements TransactionStrategy {
         transaction.setType(transactionDTO.getTransactionType());
         return transaction;
 
-
-
     }
 }

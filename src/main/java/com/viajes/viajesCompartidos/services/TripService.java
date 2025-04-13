@@ -11,7 +11,6 @@ import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
 import com.viajes.viajesCompartidos.entities.*;
 
-import com.viajes.viajesCompartidos.entities.payments.Wallet;
 import com.viajes.viajesCompartidos.enums.TransactionType;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
@@ -24,7 +23,6 @@ import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.*;
 
 
-import com.viajes.viajesCompartidos.repositories.payments.PaymentRepository;
 import com.viajes.viajesCompartidos.services.payments.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -56,7 +54,7 @@ public class TripService {
 
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, PaymentRepository PaymentRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;

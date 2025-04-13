@@ -1,13 +1,13 @@
 package com.viajes.viajesCompartidos.controllers;
 
-import com.viajes.viajesCompartidos.DTO.user.BalanceDTO;
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
+import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
-import com.viajes.viajesCompartidos.DTO.wallet.WalletDTO;
 import com.viajes.viajesCompartidos.enums.TransactionType;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.UserService;
 import com.viajes.viajesCompartidos.services.payments.WalletService;
@@ -45,6 +45,14 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+    @GetMapping("/exists-by-email/{userEmail}")
+    public ResponseEntity<?> existsByEmail(@PathVariable String userEmail) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.existsByEmail(userEmail));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 
     @GetMapping("/email/{userEmail}")
     public ResponseEntity<?> findByEmail(@PathVariable String userEmail) {
@@ -75,7 +83,14 @@ public class UserController {
         }
     }
 
-
+@GetMapping("/{userId}/vehicles")
+public ResponseEntity<List<VehicleDTO>> findAllVehicles(@PathVariable int userId) {
+    try {
+        return ResponseEntity.ok(userService.findAllVehicles(userId));
+    }catch (UserNotFoundException e) {
+        return ResponseEntity.notFound().build();
+    }
+}
 
     @PostMapping("/owner/{ownerId}/vehicles/add")
     public ResponseEntity<?> addVehicle(@PathVariable Integer ownerId , @RequestBody VehicleDTO vehicleDTO) {
@@ -83,6 +98,35 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CREATED).body(userService.addVehicle(ownerId ,vehicleDTO));
         }catch (UserNotFoundException e) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/owner/{ownerId}/vehicles/{plate}/edit")
+    public ResponseEntity<?> editVehicle(@PathVariable Integer ownerId ,@PathVariable String plate, @RequestBody VehicleDTO vehicleDTO) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userService.editVehicle(ownerId ,plate,vehicleDTO));
+        }catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    @PatchMapping("/owner/{ownerId}/vehicles/{plate}/set-pred")
+    public ResponseEntity<?> setPred(@PathVariable Integer ownerId ,@PathVariable String plate) {
+        try {
+            return ResponseEntity.ok(userService.setVehiclePredetermined(ownerId ,plate));
+        }catch (UserNotFoundException | EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @DeleteMapping("/owner/{ownerId}/vehicles/{plate}/delete")
+    public ResponseEntity<?> deleteVehicle(@PathVariable Integer ownerId ,@PathVariable String plate) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userService.deleteVehicle(ownerId ,plate));
+        }catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -117,6 +161,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
 
 
 

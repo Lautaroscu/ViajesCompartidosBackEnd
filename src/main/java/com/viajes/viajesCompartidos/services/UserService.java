@@ -1,11 +1,12 @@
 package com.viajes.viajesCompartidos.services;
 
-import com.viajes.viajesCompartidos.DTO.user.BalanceDTO;
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
+import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.entities.Vehicle;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
+import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
 import com.viajes.viajesCompartidos.repositories.VehicleRepository;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import com.viajes.viajesCompartidos.entities.User;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -83,10 +83,6 @@ public class UserService {
     }
 
 
-
-
-
-
     public VehicleDTO addVehicle(Integer ownerId, VehicleDTO vehicleDTO) {
         User owner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException("User not found"));
         Vehicle vehicle = new Vehicle();
@@ -97,6 +93,9 @@ public class UserService {
         vehicle.setAvailable(vehicleDTO.isAvailable());
         vehicle.setBrand(vehicleDTO.getBrand());
         vehicle.setColor(vehicleDTO.getColor());
+        if(owner.getVehicles().isEmpty()){
+            vehicle.setPredetermined(true);
+        }
 
         owner.addVehicle(vehicle);
         userRepository.save(owner);
@@ -104,7 +103,99 @@ public class UserService {
         return new VehicleDTO(vehicle);
 
 
+    }
 
+    public VehicleDTO editVehicle(Integer ownerId, String plate, VehicleDTO vehicleDTO) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Vehicle vehicle = vehicleRepository.findById(plate)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found"));
+
+        // Validar que el vehículo pertenezca al usuario
+        if (!owner.getVehicles().contains(vehicle)) {
+            throw new RuntimeException("Este vehículo no pertenece al usuario");
+        }
+
+        // Actualizar campos
+        vehicle.setModel(vehicleDTO.getModel());
+        vehicle.setYear(vehicleDTO.getYear());
+        vehicle.setColor(vehicleDTO.getColor());
+        vehicle.setAvailable(vehicleDTO.isAvailable());
+        vehicle.setBrand(vehicleDTO.getBrand());
+        vehicle.setSeatingCapacity(vehicleDTO.getSeatingCapacity());
+        vehicle.setPredetermined(vehicleDTO.isPredetermined());
+
+        // Si este vehículo fue marcado como predeterminado
+        if (vehicleDTO.isPredetermined()) {
+            // Desmarcar el anterior (si lo hay y es distinto)
+            owner.getVehicles().stream()
+                    .filter(Vehicle::isPredetermined)
+                    .filter(v -> !v.getPlate().equals(plate))
+                    .findFirst()
+                    .ifPresent(v -> {
+                        v.setPredetermined(false);
+                        vehicleRepository.save(v);
+                    });
+
+            vehicle.setPredetermined(true);
+        }
+
+        vehicleRepository.save(vehicle);
+        return new VehicleDTO(vehicle);
+    }
+
+    public VehicleDTO deleteVehicle(Integer ownerId, String plate) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Vehicle vehicleToDelete = vehicleRepository.findById(plate)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found"));
+
+        if (!owner.deleteVehicle(vehicleToDelete)) {
+            throw new EntityNotFoundException("Vehicle not found in user's list");
+        }
+
+        vehicleRepository.delete(vehicleToDelete);
+
+        if (vehicleToDelete.isPredetermined()) {
+            List<Vehicle> remainingVehicles = owner.getVehicles();
+
+            if (!remainingVehicles.isEmpty()) {
+                Vehicle nuevoPred = remainingVehicles.getFirst();
+                nuevoPred.setPredetermined(true);
+                vehicleRepository.save(nuevoPred); // Persistimos el cambio
+                return new VehicleDTO(nuevoPred);
+            }
+        }
+
+        // Si no era predeterminado o no hay más vehículos, devolvemos el vehiculo eliminado
+        return new VehicleDTO(vehicleToDelete);
+    }
+
+    public List<VehicleDTO> findAllVehicles(int userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        List<Vehicle> vehicles = user.getVehicles();
+
+        return vehicles
+                .stream()
+                .map(VehicleDTO::new)
+                .toList();
+    }
+
+    public boolean existsByEmail(String userEmail) {
+        return userRepository.existsByEmail(userEmail);
+    }
+
+    public PredeterminedDTO setVehiclePredetermined(Integer ownerId, String plate) {
+        User owner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        boolean isPred = owner.setVehiclePredetermined(plate);
+        if(isPred){
+        userRepository.save(owner);
+        }
+        return new PredeterminedDTO(isPred);
 
     }
 }
+

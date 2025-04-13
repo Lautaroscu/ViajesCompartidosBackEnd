@@ -1,18 +1,20 @@
 package com.viajes.viajesCompartidos.DTO.user;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-
+@Data
 public class BalanceDTO implements Serializable {
-    private BigDecimal balance;
+    private BigDecimal amount;
     public BalanceDTO() {}
     public BalanceDTO(BigDecimal balance) {
-        this.balance = balance;
+        this.amount = balance;
     }
     public BigDecimal getBalance() {
-        return balance;
+        return amount;
     }
     public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+        this.amount = balance;
     }
 }
