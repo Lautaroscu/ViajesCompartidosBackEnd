@@ -92,6 +92,7 @@ public class UserService {
         vehicle.setYear(vehicleDTO.getYear());
         vehicle.setAvailable(vehicleDTO.isAvailable());
         vehicle.setBrand(vehicleDTO.getBrand());
+        vehicle.setSeatingCapacity(vehicleDTO.getSeatingCapacity());
         vehicle.setColor(vehicleDTO.getColor());
         if(owner.getVehicles().isEmpty()){
             vehicle.setPredetermined(true);
