@@ -19,8 +19,7 @@ WORKDIR /app
 # Copia el archivo JAR generado desde la etapa de construcción
 COPY --from=build /app/target/viajesCompartidos-0.0.1-SNAPSHOT.jar app.jar
 
-# Establece la variable de entorno para el perfil activo (producción)
-ENV SPRING_PROFILES_ACTIVE=production
+
 
 # Expone el puerto de tu aplicación
 EXPOSE 8080
