@@ -13,12 +13,15 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Data
 public class UserPassengerDTO implements Serializable {
+
+    private int id;
     private String firstName;
     private String lastName;
     private BigDecimal valoration;
     private LocalDate registeredAt;
 
     public UserPassengerDTO(User user){
+        this.id = user.getUserId();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.valoration = user.getValoration();

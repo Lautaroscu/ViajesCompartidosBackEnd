@@ -258,36 +258,35 @@ public class TripService {
     }
 
 
-    public List<OutputTripDTO> getTripsByOwnerId(int userId , TripStatus status) {
+    public List<OutputTripPreviewDTO> getTripsByOwnerId(int userId , TripStatus status) {
         if(!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         Specification<Trip> specOwner = TripSpecifications.isEqualOwnerId(userId);
         Specification<Trip> specStatus = TripSpecifications.isEqualStatus(status);
-        Specification<Trip> spec = Specification.where(specOwner).and(specStatus);
+        Specification<Trip> spec = Specification.where(specOwner);
         return tripRepository
                 .findAll(spec)
                 .stream()
-                .map(OutputTripDTO::new)
+                .map(OutputTripPreviewDTO::new)
                 .toList();
     }
 
-    public List<OutputTripDTO> getTripsByPassengerId(int userId, TripStatus status) {
+    public List<OutputTripPreviewDTO> getTripsByPassengerId(int userId, TripStatus status) {
         if(!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         return tripRepository
                 .findByPassengers_UserId(userId , status)
                 .stream()
-                .map(OutputTripDTO::new)
+                .map(OutputTripPreviewDTO::new)
                 .toList();
     }
-    public List<OutputTripDTO> getTripByUserIdRolAndStatus(int userId, String rol,TripStatus status) {
-        List<OutputTripDTO> trips = null;
+    public List<OutputTripPreviewDTO> getTripByUserIdRolAndStatus(int userId, String rol,TripStatus status) {
+        List<OutputTripPreviewDTO> trips = null;
         TripStatus tripStatusDefault = TripStatus.ACTIVE;
         status = status.toString() == null || status.toString().isEmpty() ? tripStatusDefault : status;
-
-        if ("owner".equalsIgnoreCase(rol)) {
+        if ("driver".equalsIgnoreCase(rol)) {
             trips = this.getTripsByOwnerId(userId , status);
         } else if ("passenger".equalsIgnoreCase(rol)) {
             trips = this.getTripsByPassengerId(userId ,status);
@@ -295,6 +294,7 @@ public class TripService {
         if (trips == null) {
             throw  new BadRequestException("No trips found , check your parameters");
         }
+    System.out.println(trips);
 
         return trips;
 
