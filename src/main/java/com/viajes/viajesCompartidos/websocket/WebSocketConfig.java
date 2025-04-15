@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOrigins("http://localhost:5173"); // Cambia según el dominio del frontend
+                .setAllowedOrigins("http://localhost:5173" , "https://rideshared.netlify.app"); // Cambia según el dominio del frontend
 
 
     }
