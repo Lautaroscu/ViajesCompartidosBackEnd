@@ -81,12 +81,15 @@ public class TripController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getTripsByUserId(
             @PathVariable int userId,
-            @RequestParam(required = false , defaultValue = "passenger") String rol ,
-            @RequestParam(required = false , defaultValue = "ACTIVE") TripStatus status
+            @RequestParam(required = false) String rol ,
+            @RequestParam(required = false) TripStatus status
     )
     {
         try {
-            return ResponseEntity.ok(tripService.getTripByUserIdRolAndStatus(userId, rol, status));
+            //si no hay params, entonces devolvemos todos los viajes en los que aparece ese userId
+            //ya sea driver o passenger
+            List<OutputTripPreviewDTO> trips = (rol == null || rol.isEmpty()) && status == null ? tripService.getTripsOfUser(userId) : tripService.getTripByUserIdRolAndStatus(userId ,rol , status);
+            return ResponseEntity.ok(trips);
 
         }catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

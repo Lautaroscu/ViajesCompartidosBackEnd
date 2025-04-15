@@ -24,6 +24,7 @@ import com.viajes.viajesCompartidos.repositories.*;
 
 
 import com.viajes.viajesCompartidos.services.payments.WalletService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -271,30 +272,37 @@ public class TripService {
                 .map(OutputTripPreviewDTO::new)
                 .toList();
     }
+    public List<OutputTripPreviewDTO> getTripsOfUser(Integer userId) {
 
-    public List<OutputTripPreviewDTO> getTripsByPassengerId(int userId, TripStatus status) {
         if(!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         return tripRepository
-                .findByPassengers_UserId(userId , status)
+                .findTripsOfUser(userId)
                 .stream()
                 .map(OutputTripPreviewDTO::new)
                 .toList();
     }
-    public List<OutputTripPreviewDTO> getTripByUserIdRolAndStatus(int userId, String rol,TripStatus status) {
+    public List<OutputTripPreviewDTO> getTripsByPassengerId(Integer userId) {
+        if(!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User not found");
+        }
+        return tripRepository
+                .findByPassengers_UserId(userId)
+                .stream()
+                .map(OutputTripPreviewDTO::new)
+                .toList();
+    }
+    public List<OutputTripPreviewDTO> getTripByUserIdRolAndStatus(Integer userId, String rol,TripStatus status) {
         List<OutputTripPreviewDTO> trips = null;
-        TripStatus tripStatusDefault = TripStatus.ACTIVE;
-        status = status.toString() == null || status.toString().isEmpty() ? tripStatusDefault : status;
         if ("driver".equalsIgnoreCase(rol)) {
             trips = this.getTripsByOwnerId(userId , status);
         } else if ("passenger".equalsIgnoreCase(rol)) {
-            trips = this.getTripsByPassengerId(userId ,status);
+            trips = this.getTripsByPassengerId(userId);
         }
         if (trips == null) {
             throw  new BadRequestException("No trips found , check your parameters");
         }
-    System.out.println(trips);
 
         return trips;
 

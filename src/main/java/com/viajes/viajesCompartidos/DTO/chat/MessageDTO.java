@@ -2,9 +2,17 @@ package com.viajes.viajesCompartidos.DTO.chat;
 
 import com.viajes.viajesCompartidos.entities.Message;
 import com.viajes.viajesCompartidos.entities.User;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@AllArgsConstructor
 
 public class MessageDTO implements Serializable {
     private int id;
@@ -12,48 +20,15 @@ public class MessageDTO implements Serializable {
     private String user;
     private String content;
     private LocalDateTime dateTime;
+    private int chatId;
     public MessageDTO() {}
-    public MessageDTO(int id, int userId, int chatId, String message, LocalDateTime dateTime) {
-        this.id = id;
-        this.userId = userId;
-        this.content = message;
-        this.dateTime = dateTime;
-    }
+
     public MessageDTO(Message message) {
         this.id = message.getId();
         this.content = message.getContent();
         this.dateTime = message.getTimestamp();
         this.userId = message.getUser().getUserId();
         this.user = message.getUser().getFirstName() + " " + message.getUser().getLastName();
-    }
-
-    public int getId() {
-        return id;
-    }
-
-
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
+        this.chatId = message.getChat().getId();
     }
 }
