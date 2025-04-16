@@ -79,7 +79,7 @@
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "http://localhost:8080" , "https://viajescompartidos1.netlify.app" ,"https://rideshared.netlify.app" ,"https://www.mercadopago.com.ar")); // Frontend React
+            configuration.setAllowedOrigins(List.of("http://localhost:5173" , "http://localhost:8080"  ,"https://rideshared.netlify.app" ,"https://www.mercadopago.com.ar")); // Frontend React
             configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
             configuration.setAllowedHeaders(List.of("*"));
             configuration.setAllowCredentials(true); // Permitir cookies
