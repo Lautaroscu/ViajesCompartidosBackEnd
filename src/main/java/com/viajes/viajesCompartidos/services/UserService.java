@@ -4,6 +4,7 @@ import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
+import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDeleteResponseDTO;
 import com.viajes.viajesCompartidos.entities.Vehicle;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
@@ -146,7 +147,7 @@ public class UserService {
         return new VehicleDTO(vehicle);
     }
 
-    public VehicleDTO deleteVehicle(Integer ownerId, String plate) {
+    public VehicleDeleteResponseDTO deleteVehicle(Integer ownerId, String plate) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
@@ -158,20 +159,25 @@ public class UserService {
         }
 
         vehicleRepository.delete(vehicleToDelete);
-
+        VehicleDeleteResponseDTO responseDTO = new VehicleDeleteResponseDTO();
+        responseDTO.setPlateOld(vehicleToDelete.getPlate());
+        responseDTO.setDeleted(true);
         if (vehicleToDelete.isPredetermined()) {
             List<Vehicle> remainingVehicles = owner.getVehicles();
-
             if (!remainingVehicles.isEmpty()) {
                 Vehicle nuevoPred = remainingVehicles.getFirst();
                 nuevoPred.setPredetermined(true);
+                responseDTO.setPlateNewPred(nuevoPred.getPlate());
+                responseDTO.setWasLastVehicle(false);
                 vehicleRepository.save(nuevoPred); // Persistimos el cambio
-                return new VehicleDTO(nuevoPred);
+
+            }else {
+                responseDTO.setPlateNewPred(null);
+                responseDTO.setWasLastVehicle(true);
             }
         }
 
-        // Si no era predeterminado o no hay más vehículos, devolvemos el vehiculo eliminado
-        return new VehicleDTO(vehicleToDelete);
+    return responseDTO;
     }
 
     public List<VehicleDTO> findAllVehicles(int userId) {

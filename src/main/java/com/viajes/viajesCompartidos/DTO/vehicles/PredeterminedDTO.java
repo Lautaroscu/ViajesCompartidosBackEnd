@@ -11,7 +11,4 @@ import java.io.Serializable;
 public class PredeterminedDTO implements Serializable {
     private boolean predetermined;
 
-
-
-
 }
