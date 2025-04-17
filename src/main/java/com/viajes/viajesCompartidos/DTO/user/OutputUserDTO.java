@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,6 +18,7 @@ public class OutputUserDTO implements Serializable {
     private String firstName;
     private String email;
     private String residenceCity;
+    private LocalDate registeredAt;
     private String lastName;
     private String phoneNumber;
     private Long walletId;
@@ -33,6 +36,7 @@ public class OutputUserDTO implements Serializable {
         this.walletId = user.getWallet().getId();
         this.valoration = user.getValoration();
         this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredetermined).map(VehicleDTO::new).findFirst().orElse(null);
+        this.registeredAt = user.getRegisteredAt();
     }
 
 }
