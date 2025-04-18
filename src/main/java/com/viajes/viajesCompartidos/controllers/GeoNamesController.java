@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -47,7 +48,6 @@ public class GeoNamesController {
                 .retrieve()
                 .bodyToMono(GeoNamesResponse.class);
     }
-
     @GetMapping("/all-cities-from-province")
     public Mono<GeoNamesResponse> getAllCitiesFromProvince(@RequestParam String adminCode) {
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/searchJSON")
@@ -60,6 +60,11 @@ public class GeoNamesController {
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(GeoNamesResponse.class);
+                .bodyToMono(GeoNamesResponse.class)
+                .map(response -> {
+                    // Ordenar por nombre de ciudad
+                    response.getGeonames().sort(Comparator.comparing(GeoCity::getName));
+                    return response;
+                });
     }
 }

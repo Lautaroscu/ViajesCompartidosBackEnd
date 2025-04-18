@@ -72,21 +72,30 @@ public class TripService {
 
         Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-
         Specification<Trip> originFilter = TripSpecifications.isEqualOrigin(filterTripDTO.getOrigin());
         Specification<Trip> destinationFilter = TripSpecifications.isEqualDestination(filterTripDTO.getDestination());
         Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getMax_passengers());
         Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate(), filterTripDTO.getEndDate());
         Specification<Trip> availabilityFilter = TripSpecifications.isAvailableForUser(filterTripDTO.getUserId());
         Specification<Trip> maxPrice = TripSpecifications.maxPrice(filterTripDTO.getMaxPrice()) ;
+        Specification<Trip> spec = Specification.where(null);
+
+        if(filterTripDTO.getStrict().equals("false")) {
+            Specification<Trip> locationFilter = Specification.where(originFilter).or(destinationFilter);
+
+            spec = spec.and(locationFilter)
+                    .and(availabilityFilter);
+        }else {
+            spec = spec
+                    .and(originFilter)
+                    .and(destinationFilter)
+                    .and(passengersFilter)
+                    .and(dateFilter)
+                    .and(availabilityFilter)
+                    .and(maxPrice);
+        }
 
 
-        Specification<Trip> spec = Specification.where(originFilter)
-                .and(destinationFilter)
-                .and(passengersFilter)
-                .and(dateFilter)
-                .and(availabilityFilter)
-                .and(maxPrice);
         return tripRepository
 
                 .findAll(spec, isValidSort ? Sort.by(sortDirection, sort) : Sort.unsorted())
@@ -144,8 +153,8 @@ public class TripService {
             return locationRepository.save(loc);
         });
         Optional<Location> maybeLocationDestination = locationRepository.findByCityAndExactPlace(
-                trip.getOrigin().getCityName(),
-                trip.getOrigin().getExactPlace()
+                trip.getDestination().getCityName(),
+                trip.getDestination().getExactPlace()
         );
 
         Location destination = maybeLocationDestination.orElseGet(()-> {

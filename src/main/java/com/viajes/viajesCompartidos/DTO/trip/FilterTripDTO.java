@@ -16,6 +16,7 @@ public class FilterTripDTO implements Serializable {
     private LocalDateTime startDate, endDate ;
     private Double maxPrice;
     private TripType tripType;
+    private String strict;
 
 
 }

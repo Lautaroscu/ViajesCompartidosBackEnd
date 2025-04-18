@@ -50,11 +50,12 @@ public class TripController {
             @RequestParam(name = "maxPrice" , required = false) Double maxPrice,
             @RequestParam(name = "sort", required = false, defaultValue = "price") String sort,
             @RequestParam(name = "order", required = false, defaultValue = "asc") String order , // Parámetro de orden
-            @RequestParam(name = "tripType" , required = false) TripType tripType
+            @RequestParam(name = "tripType" , required = false) TripType tripType ,
+            @RequestParam(name= "strict" , required = false , defaultValue = "true") String strict
 
 
             ) {
-        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate , maxPrice , tripType);
+        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate , maxPrice , tripType , strict);
         return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO, sort, order));
     }
     @PostMapping("/passengers")

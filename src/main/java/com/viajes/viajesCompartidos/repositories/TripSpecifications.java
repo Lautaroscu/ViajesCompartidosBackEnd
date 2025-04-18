@@ -1,5 +1,6 @@
 package com.viajes.viajesCompartidos.repositories;
 
+import com.viajes.viajesCompartidos.entities.Location;
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.enums.TripType;
@@ -15,10 +16,13 @@ public class TripSpecifications {
             if (origin == null || origin.isEmpty()) {
                 return builder.conjunction(); // No aplica filtro
             }
-            return builder.like(
-                    builder.function("unaccent", String.class, builder.lower(root.get("origin"))),
-                    "%" + origin.toLowerCase() + "%"
-            );
+            // Realizamos un join con la tabla Location
+            Join<Trip, Location> locationJoin = root.join("origin", JoinType.INNER);
+
+            // Aplicamos el filtro a la propiedad "name" de la tabla Location
+            return builder.like( builder.function("unaccent", String.class, builder.lower(locationJoin.get("city"))),
+                    "%" + origin.toLowerCase() + "%");
+
         };
     }
 
@@ -57,10 +61,14 @@ public class TripSpecifications {
             if (destination == null || destination.isEmpty()) {
                 return builder.conjunction(); // No aplica filtro
             }
-            return builder.like(
-                    builder.function("unaccent", String.class, builder.lower(root.get("destination"))),
-                    "%" + destination.toLowerCase() + "%"
-            );
+            // Realizamos un join con la tabla Location
+            Join<Trip, Location> locationJoin = root.join("destination", JoinType.INNER);
+
+            // Aplicamos el filtro a la propiedad "name" de la tabla Location
+            return builder.like( builder.function("unaccent", String.class, builder.lower(locationJoin.get("city"))),
+                    "%" + destination.toLowerCase() + "%");
+
+
         };
     }
 
