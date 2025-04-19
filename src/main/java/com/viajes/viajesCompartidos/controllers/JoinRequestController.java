@@ -30,7 +30,7 @@ public class JoinRequestController {
     @PostMapping
     public ResponseEntity<?> sendJoinRequest(@RequestBody JoinRequestDTO joinRequestDTO) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(joinRequestService.sendJoinRequest(joinRequestDTO.getUserId(), joinRequestDTO.getTripId()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(joinRequestService.sendJoinRequest(joinRequestDTO));
         } catch (TripNotFoundException | UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (MessagingException m) {

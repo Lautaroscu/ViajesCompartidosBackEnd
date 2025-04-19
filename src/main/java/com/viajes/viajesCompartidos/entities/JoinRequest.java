@@ -2,10 +2,15 @@ package com.viajes.viajesCompartidos.entities;
 
 import com.viajes.viajesCompartidos.enums.RequestStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
+@Setter
 public class JoinRequest {
 
     @Id
@@ -25,50 +30,21 @@ public class JoinRequest {
 
     private LocalDateTime requestDate; // Fecha de la solicitud.
 
+    private String message;
+
 
     public JoinRequest() {
         status = RequestStatus.PENDING;
         requestDate = LocalDateTime.now();
     }
-    public JoinRequest(User user, Trip trip, RequestStatus status) {
+    public JoinRequest(User user, Trip trip, RequestStatus status , String message) {
         this.user = user;
         this.trip = trip;
         this.status = status;
         this.requestDate = LocalDateTime.now();
-    }
-    // Getters y setters
-
-
-    public Trip getTrip() {
-        return trip;
-    }
-    public void setTrip(Trip trip) {
-        this.trip = trip;
+        this.message = message;
     }
 
-    public LocalDateTime getRequestDate() {
-        return requestDate;
-    }
-    public void setRequestDate(LocalDateTime requestDate) {
-        this.requestDate = requestDate;
-    }
 
-    public Long getId() {
-        return id;
-    }
 
-    public RequestStatus getStatus() {
-        return status;
-    }
-    public void setStatus(RequestStatus status) {
-        this.status = status;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public User getUser() {
-        return user;
-    }
 }

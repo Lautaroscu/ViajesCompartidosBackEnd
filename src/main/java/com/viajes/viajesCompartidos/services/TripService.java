@@ -106,12 +106,14 @@ public class TripService {
     }
 
     public OutputTripPassengerDTO addPassengerToTrip(TripPassengerDTO tripPassengerDTO) {
-        Trip trip = tripRepository.findById(tripPassengerDTO.getTripID())
+        Trip trip = tripRepository.findById(tripPassengerDTO.getTripId())
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
-        User user = userRepository.findById(tripPassengerDTO.getPassengerID())
+        User user = userRepository.findById(tripPassengerDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
 
+        System.out.println(trip);
+        System.out.println(user);
 
         // Intenta agregar el pasajero; si falla, se lanzará una excepción específica
         trip.addPassenger(user);
@@ -119,6 +121,7 @@ public class TripService {
         TransactionDTO expense = new TransactionDTO();
         expense.setAmount(tripPrice);
         expense.setTransactionType(TransactionType.EXPENSE);
+        expense.setWalletId(user.getWallet().getId());
 
         walletService.addTransaction(user.getUserId() , expense);
 

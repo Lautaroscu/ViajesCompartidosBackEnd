@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
@@ -16,6 +17,8 @@ public class JoinRequestDTO implements Serializable {
     private Long requestId;
     private Integer userId;
     private String userName;
+    private BigDecimal userValoration;
+    private String message;
     private String userLastName;
     private Integer tripId;
     private RequestStatus status;
@@ -29,7 +32,11 @@ public class JoinRequestDTO implements Serializable {
         this.requestDate = joinRequest.getRequestDate();
         this.userName = joinRequest.getUser().getFirstName();
         this.userLastName = joinRequest.getUser().getLastName();
+        this.userValoration = joinRequest.getUser().getValoration();
+        this.message = joinRequest.getMessage();
+
     }
+
 
 
 }

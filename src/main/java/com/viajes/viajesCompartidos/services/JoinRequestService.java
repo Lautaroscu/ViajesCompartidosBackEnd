@@ -10,8 +10,10 @@ import com.viajes.viajesCompartidos.exceptions.InvalidJoinRequestException;
 import com.viajes.viajesCompartidos.repositories.JoinRequestRepository;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +29,11 @@ public class JoinRequestService {
     private final TripRepository tripRepository;
 
     private final EmailService emailService;
+    @Value("${url.front-end.domain}")
+    private String URL;
+
+
+
     @Autowired
     public JoinRequestService(JoinRequestRepository joinRequestRepository , UserRepository userRepository, TripRepository tripRepository, EmailService emailService) {
         this.joinRequestRepository = joinRequestRepository;
@@ -35,7 +42,9 @@ public class JoinRequestService {
         this.emailService = emailService;
     }
 
-            public JoinRequestDTO sendJoinRequest(Integer userId, Integer tripId) throws MessagingException {
+            public JoinRequestDTO sendJoinRequest(JoinRequestDTO joinRequestDTO) throws MessagingException {
+        Integer userId = joinRequestDTO.getUserId();
+        Integer tripId = joinRequestDTO.getTripId();
         if(joinRequestRepository.existsByTrip_TripId(tripId) && joinRequestRepository.existsByUser_UserId(userId)) {
             throw new InvalidJoinRequestException("Ya has solicitado unirte a este viaje");
         }
@@ -48,11 +57,11 @@ public class JoinRequestService {
         JoinRequest request = new JoinRequest();
         request.setUser(user);
         request.setTrip(trip);
+        request.setMessage(joinRequestDTO.getMessage());
         request.setStatus(RequestStatus.PENDING);
         // Construir los enlaces de aceptar/rechazar
-        String URL = "http://localhost:5173/trip/join-requests";
 
-
+        String tripUrl = URL + "/viajes/" + trip.getTripId();
                 // Crear el contenido HTML del email
                 String email = request.getTrip().getOwner().getEmail();
                 String subject = "Nueva solicitud para tu viaje";
@@ -69,7 +78,7 @@ public class JoinRequestService {
                                 + "</div>",
                         request.getUser().getFirstName(),  // Nombre del usuario que hizo la solicitud
                         request.getTrip().getDestination(),  // Destino del viaje
-                        URL   // URL donde se pueden ver las solicitudes
+                        tripUrl   // URL donde se pueden ver las solicitudes
                 );
 
                 emailService.sendHtmlEmail(email , subject , htmlContent);
