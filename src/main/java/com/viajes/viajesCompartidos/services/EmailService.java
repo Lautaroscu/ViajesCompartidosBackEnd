@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.services;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    @Value("${spring.mail.username}")
+    private  String from;
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -25,7 +28,7 @@ public class EmailService {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlContent, true); // El "true" indica que es HTML.
-        helper.setFrom("scuffilautaro@gmail.com"); // Cambia por tu correo.
+        helper.setFrom(from); // Cambia por tu correo.
 
         mailSender.send(message);
     }

@@ -77,7 +77,7 @@ public class JoinRequestService {
                                 + "</div>"
                                 + "</div>",
                         request.getUser().getFirstName(),  // Nombre del usuario que hizo la solicitud
-                        request.getTrip().getDestination(),  // Destino del viaje
+                        request.getTrip().getDestination().getCity(),  // Destino del viaje
                         tripUrl   // URL donde se pueden ver las solicitudes
                 );
 

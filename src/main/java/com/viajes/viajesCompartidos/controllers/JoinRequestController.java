@@ -60,7 +60,7 @@ public class JoinRequestController {
     }
 
 
-    @GetMapping("/trip/{tripId}/user/{userId}")
+    @GetMapping("/request/trip/{tripId}/user/{userId}")
     public ResponseEntity<?> getRequestByTripAndUser(@PathVariable Integer tripId, @PathVariable Integer userId) {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(joinRequestService.getByTripAndUser(tripId, userId));

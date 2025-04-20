@@ -239,6 +239,7 @@ public class TripService {
         TransactionDTO refundTransactionDTO = new TransactionDTO();
         refundTransactionDTO.setAmount(refundAmount);
         refundTransactionDTO.setTransactionType(TransactionType.RECHARGE);
+        refundTransactionDTO.setWalletId(user.getWallet().getId());
         walletService.addTransaction(user.getUserId() ,refundTransactionDTO);
         tripRepository.save(trip);
         joinRequestRepository.delete(joinRequest);
