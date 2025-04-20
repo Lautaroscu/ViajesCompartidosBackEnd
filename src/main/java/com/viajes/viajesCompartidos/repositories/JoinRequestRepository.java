@@ -16,4 +16,6 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> 
 
     Optional<JoinRequest> findByTrip_TripIdAndUser_UserId(Integer tripId, Integer userId);
 
+    void deleteByTrip_TripId(Integer tripId);
+
 }

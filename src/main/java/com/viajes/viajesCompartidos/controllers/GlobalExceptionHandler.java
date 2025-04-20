@@ -1,9 +1,8 @@
 package com.viajes.viajesCompartidos.controllers;
 
-import com.viajes.viajesCompartidos.exceptions.InvalidCredentialsException;
-import com.viajes.viajesCompartidos.exceptions.InvalidJoinRequestException;
-import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
-import com.viajes.viajesCompartidos.exceptions.TooManyAttemptsException;
+import com.viajes.viajesCompartidos.DTO.ErrorResponse;
+import com.viajes.viajesCompartidos.exceptions.*;
+import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
 import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
@@ -13,61 +12,43 @@ import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler({
+            UserAlreadyExistsException.class,
+            MaxPassengersOnBoardException.class,
+            NotEnoughBalanceException.class ,
+            TripContainsPassangersException.class ,
+            InvalidLocationException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
+        return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler({
+            TripNotFoundException.class ,
+            UserNotFoundException.class ,
+            EntityNotFoundException.class ,
+            JoinRequestNotFoundException.class,
+            LocationNotFoundException.class
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    })
+    public ResponseEntity<ErrorResponse> handleNotFound(TripNotFoundException ex) {
+        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(TripNotFoundException.class)
-    public ResponseEntity<String> handleTripNotFound(TripNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-    @ExceptionHandler(LocationNotFoundException.class)
-    public ResponseEntity<String> handleLocationNotFound(LocationNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-    @ExceptionHandler(MaxPassengersOnBoardException.class)
-    public ResponseEntity<String> handleMaxPassengersOnBoard(MaxPassengersOnBoardException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(TripContainsPassangersException.class)
-    public ResponseEntity<String> handleTripContainsPassangers(TripContainsPassangersException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(NotEnoughBalanceException.class)
-    public ResponseEntity<String> handleNotEnoughBalance(NotEnoughBalanceException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<String> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(InvalidJoinRequestException.class)
-    public ResponseEntity<String> handleInvalidJoinRequest(InvalidJoinRequestException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(JoinRequestNotFoundException.class)
-    public ResponseEntity<String> handleJoinRequestNotFound(JoinRequestNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(TooManyAttemptsException.class)
-    public ResponseEntity<String> handleTooManyAttempts(TooManyAttemptsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
+
+
 
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        return buildResponse("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<ErrorResponse> buildResponse(String message, HttpStatus status) {
+        return ResponseEntity.status(status).body(new ErrorResponse(message, status.value()));
     }
 }

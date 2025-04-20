@@ -7,7 +7,7 @@ import java.io.Serializable;
 public class CompleteTripDTO implements Serializable {
     private double userLatitude;
     private double userLongitude;
-    private long userId;
+    private int userId;
     private double cityLatitude;
     private double cityLongitude;
 }

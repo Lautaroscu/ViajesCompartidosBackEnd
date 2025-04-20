@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.Normalizer;
 
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.GenericResponseDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
@@ -24,7 +25,7 @@ import com.viajes.viajesCompartidos.repositories.*;
 
 
 import com.viajes.viajesCompartidos.services.payments.WalletService;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -203,14 +204,16 @@ public class TripService {
 
         return new OutputTripDTO(tripUpdated);
     }
-
-    public void deleteTrip(int id) {
+    @Transactional
+    public GenericResponseDTO deleteTrip(int id) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         if (trip.getCountPassengers() > 0) {
             throw new TripContainsPassangersException("El viaje contiene al menos un pasajero");
         }
-
+        joinRequestRepository.deleteByTrip_TripId(trip.getTripId());
         tripRepository.deleteById(id);
+
+        return new GenericResponseDTO(true, "Trip deleted successfully");
     }
 
     private boolean isBadRequest(InputTripDTO trip) {
@@ -249,16 +252,18 @@ public class TripService {
 
     }
 
-    public void cancelTrip(int tripId) {
+    public GenericResponseDTO cancelTrip(int tripId) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         trip.setStatus(TripStatus.CANCELED);
         tripRepository.save(trip);
+        return new GenericResponseDTO(true, "Trip cancelled successfully");
     }
 
-    public void activateTrip(int tripId) {
+    public GenericResponseDTO activateTrip(int tripId) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         trip.setStatus(TripStatus.ACTIVE);
         tripRepository.save(trip);
+        return new GenericResponseDTO(true, "Trip activated successfully");
     }
 
     private static String normalizeString(String input) {
@@ -321,7 +326,7 @@ public class TripService {
 
     }
 
-    public void completeTrip(Integer tripId, CompleteTripDTO completeTripDTO) {
+    public GenericResponseDTO completeTrip(Integer tripId, CompleteTripDTO completeTripDTO) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         if (!isUserInCity(completeTripDTO)) {
             throw new InvalidLocationException("Invalid location");
@@ -329,6 +334,8 @@ public class TripService {
         trip.setStatus(TripStatus.COMPLETED);
 
         tripRepository.save(trip);
+
+        return new GenericResponseDTO(true, "Trip completed successfully");
 
     }
 

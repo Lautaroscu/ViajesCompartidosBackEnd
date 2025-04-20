@@ -1,6 +1,7 @@
 package com.viajes.viajesCompartidos.controllers;
 
 
+import com.viajes.viajesCompartidos.DTO.ErrorResponse;
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -47,29 +49,23 @@ public class TripController {
             @RequestParam(name = "startDate", required = false) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) LocalDateTime endDate,
             @RequestParam(name = "passengers", required = false) Integer passengers,
-            @RequestParam(name = "maxPrice" , required = false) Double maxPrice,
+            @RequestParam(name = "maxPrice", required = false) Double maxPrice,
             @RequestParam(name = "sort", required = false, defaultValue = "price") String sort,
-            @RequestParam(name = "order", required = false, defaultValue = "asc") String order , // Parámetro de orden
-            @RequestParam(name = "tripType" , required = false) TripType tripType ,
-            @RequestParam(name= "strict" , required = false , defaultValue = "true") String strict
+            @RequestParam(name = "order", required = false, defaultValue = "asc") String order, // Parámetro de orden
+            @RequestParam(name = "tripType", required = false) TripType tripType,
+            @RequestParam(name = "strict", required = false, defaultValue = "true") String strict
 
 
-            ) {
-        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate , maxPrice , tripType , strict);
+    ) {
+        FilterTripDTO filterTripDTO = new FilterTripDTO(origin, destination, passengers, userId, startDate, endDate, maxPrice, tripType, strict);
         return ResponseEntity.status(HttpStatus.OK).body(tripService.findAll(filterTripDTO, sort, order));
     }
+
     @PostMapping("/passengers")
     public ResponseEntity<?> addPassengerToTrip(@RequestBody TripPassengerDTO tripPassengerDTO) {
-        try {
-            OutputTripPassengerDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(tripPassengerDTO1);
-        } catch (UserAlreadyExistsException | MaxPassengersOnBoardException | NotEnoughBalanceException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (UserNotFoundException | TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
-        }
+        OutputTripPassengerDTO tripPassengerDTO1 = tripService.addPassengerToTrip(tripPassengerDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(tripPassengerDTO1);
+
     }
 
     @GetMapping("/{tripId}")
@@ -82,107 +78,66 @@ public class TripController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getTripsByUserId(
             @PathVariable int userId,
-            @RequestParam(required = false) String rol ,
+            @RequestParam(required = false) String rol,
             @RequestParam(required = false) TripStatus status
-    )
-    {
-        try {
-            //si no hay params, entonces devolvemos todos los viajes en los que aparece ese userId
-            //ya sea driver o passenger
-            List<OutputTripPreviewDTO> trips = (rol == null || rol.isEmpty()) && status == null ? tripService.getTripsOfUser(userId) : tripService.getTripByUserIdRolAndStatus(userId ,rol , status);
-            return ResponseEntity.ok(trips);
+    ) {
 
-        }catch (BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        List<OutputTripPreviewDTO> trips = (rol == null || rol.isEmpty()) && status == null ? tripService.getTripsOfUser(userId) : tripService.getTripByUserIdRolAndStatus(userId, rol, status);
+        return ResponseEntity.ok(trips);
+
     }
 
 
     @GetMapping("/passengers/{tripId}")
     public ResponseEntity<?> getPassengers(@PathVariable int tripId) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(tripService.getPassengers(tripId));
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.getPassengers(tripId));
+
     }
 
     @PostMapping
     public ResponseEntity<?> addTrip(@RequestBody InputTripDTO inputTripDTO) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(tripService.saveTrip(inputTripDTO));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Not Found");
-        } catch (BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(tripService.saveTrip(inputTripDTO));
+
     }
 
     @PutMapping("/{tripId}")
     public ResponseEntity<?> updateTrip(@RequestBody InputTripDTO inputTripDTO, @PathVariable int tripId) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(tripService.updateTrip(inputTripDTO, tripId));
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(tripService.updateTrip(inputTripDTO, tripId));
+
     }
 
     @DeleteMapping("/{tripId}")
     public ResponseEntity<?> deleteTrip(@PathVariable int tripId) {
-        try {
-            tripService.deleteTrip(tripId);
-            return ResponseEntity.status(HttpStatus.OK).body("trip deleted successfully");
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (TripContainsPassangersException t) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(t.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.deleteTrip(tripId));
     }
 
     @PatchMapping("/cancel/{tripId}")
     public ResponseEntity<?> cancelTrip(@PathVariable int tripId) {
-        try {
-            tripService.cancelTrip(tripId);
-            return ResponseEntity.status(HttpStatus.OK).body("Trip cancelled successfully");
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.cancelTrip(tripId));
+
     }
 
     @PatchMapping("/activate/{tripId}")
     public ResponseEntity<?> activateTrip(@PathVariable int tripId) {
-        try {
-            tripService.activateTrip(tripId);
-            return ResponseEntity.status(HttpStatus.OK).body("Trip activated successfully");
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.activateTrip(tripId));
     }
 
     @DeleteMapping("/passengers/{tripId}/{userId}")
     public ResponseEntity<?> removePassengerFromTrip(@PathVariable int tripId, @PathVariable int userId) {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(tripService.removePassengerFromTrip(tripId, userId));
-        } catch (TripNotFoundException | UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.removePassengerFromTrip(tripId, userId));
+
     }
 
     @PatchMapping("/complete/{tripId}")
     public ResponseEntity<?> completeTrip(@PathVariable Integer tripId, @RequestBody CompleteTripDTO completeTripDTO) {
-        try {
-            tripService.completeTrip(tripId, completeTripDTO);
-            return ResponseEntity.ok().build();
 
-        } catch (TripNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (InvalidLocationException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.completeTrip(tripId, completeTripDTO));
 
     }
 
