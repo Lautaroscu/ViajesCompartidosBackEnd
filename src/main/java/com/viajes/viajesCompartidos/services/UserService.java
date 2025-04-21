@@ -41,17 +41,13 @@ public class UserService {
 
 
     public OutputUserDTO getUser(Integer id) {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User not found");
-        }
-        return new OutputUserDTO(userRepository.findById(id).get());
+       User user = userRepository.findById(id).orElseThrow( () -> new UserNotFoundException("User not found" ) );
+        return new OutputUserDTO(user);
     }
 
     public OutputUserDTO getUser(String email) {
-        if (!userRepository.existsByEmail(email)) {
-            throw new UserNotFoundException("User not found");
-        }
-        return new OutputUserDTO(userRepository.findByEmail(email).get());
+        User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("User not found" ) );
+        return new OutputUserDTO(user);
     }
 
 
@@ -71,12 +67,9 @@ public class UserService {
     }
 
     public OutputUserDTO deleteUser(int id) {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User not found");
-        }
-        User userById = userRepository.findById(id).get();
+       User user = userRepository.findById(id).orElseThrow( () -> new UserNotFoundException("User not found")) ;
         userRepository.deleteById(id);
-        return new OutputUserDTO(userById);
+        return new OutputUserDTO(user);
     }
 
     private boolean isBadRequest(InputUserDTO dto) {
@@ -116,7 +109,7 @@ public class UserService {
 
         // Validar que el vehículo pertenezca al usuario
         if (!owner.getVehicles().contains(vehicle)) {
-            throw new RuntimeException("Este vehículo no pertenece al usuario");
+            throw new EntityNotFoundException("Este vehículo no pertenece al usuario");
         }
 
         // Actualizar campos

@@ -133,13 +133,9 @@ public class TripService {
 
 
     public OutputTripDTO findById(int id) {
-        Chat chat = chatRepository.findById(id).orElse(null);
-        assert chat != null;
-        ChatDTO chatDTO = new ChatDTO(chat);
+
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException("Trip not found"));
-        OutputTripDTO outputTripDTO = new OutputTripDTO(trip);
-        outputTripDTO.setChat(chatDTO);
-        return outputTripDTO;
+        return new OutputTripDTO(trip);
     }
 
     public OutputTripDTO saveTrip(InputTripDTO trip) {

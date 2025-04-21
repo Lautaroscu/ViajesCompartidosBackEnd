@@ -7,6 +7,7 @@ import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.enums.RequestStatus;
 import com.viajes.viajesCompartidos.exceptions.InvalidJoinRequestException;
+import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
 import com.viajes.viajesCompartidos.repositories.JoinRequestRepository;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
@@ -114,7 +115,7 @@ public class JoinRequestService {
     }
 
     public JoinRequestDTO getByTripAndUser(Integer tripId, Integer userId) {
-        JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId , userId).orElseThrow(() -> new InvalidJoinRequestException("Solicitud para unirse al viaje no encontrada"));
+        JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId , userId).orElseThrow(() -> new JoinRequestNotFoundException("Solicitud para unirse al viaje no encontrada"));
 
         return new JoinRequestDTO(joinRequest);
     }

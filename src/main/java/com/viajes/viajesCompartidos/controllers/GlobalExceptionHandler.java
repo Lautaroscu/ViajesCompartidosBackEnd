@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
             LocationNotFoundException.class
 
     })
-    public ResponseEntity<ErrorResponse> handleNotFound(TripNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex) {
         return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 

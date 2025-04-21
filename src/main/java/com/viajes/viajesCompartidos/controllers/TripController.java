@@ -70,9 +70,8 @@ public class TripController {
 
     @GetMapping("/{tripId}")
     public ResponseEntity<OutputTripDTO> getTripById(@PathVariable int tripId) {
-        OutputTripDTO outputTripDTO = tripService.findById(tripId);
-        HttpStatus status = outputTripDTO != null ? HttpStatus.OK : HttpStatus.NOT_FOUND;
-        return ResponseEntity.status(status).body(outputTripDTO);
+
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.findById(tripId));
     }
 
     @GetMapping("/user/{userId}")
