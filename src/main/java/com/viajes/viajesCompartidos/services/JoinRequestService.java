@@ -2,17 +2,18 @@ package com.viajes.viajesCompartidos.services;
 
 import com.viajes.viajesCompartidos.DTO.JoinRequestDTO;
 import com.viajes.viajesCompartidos.DTO.RequestStatusDTO;
+import com.viajes.viajesCompartidos.clients.NotificationsClient;
 import com.viajes.viajesCompartidos.entities.JoinRequest;
 import com.viajes.viajesCompartidos.entities.Trip;
 import com.viajes.viajesCompartidos.entities.User;
 import com.viajes.viajesCompartidos.enums.RequestStatus;
 import com.viajes.viajesCompartidos.exceptions.InvalidJoinRequestException;
 import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
+import com.viajes.viajesCompartidos.models.NotificationModel;
+import com.viajes.viajesCompartidos.models.NotificationType;
 import com.viajes.viajesCompartidos.repositories.JoinRequestRepository;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
-import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,21 +30,21 @@ public class JoinRequestService {
 
     private final TripRepository tripRepository;
 
-    private final EmailService emailService;
     @Value("${url.front-end.domain}")
     private String URL;
+    private final NotificationsClient notificationsClient;
 
 
 
     @Autowired
-    public JoinRequestService(JoinRequestRepository joinRequestRepository , UserRepository userRepository, TripRepository tripRepository, EmailService emailService) {
+    public JoinRequestService(JoinRequestRepository joinRequestRepository , UserRepository userRepository, TripRepository tripRepository, NotificationsClient notificationsClient) {
         this.joinRequestRepository = joinRequestRepository;
         this.userRepository = userRepository;
         this.tripRepository = tripRepository;
-        this.emailService = emailService;
+        this.notificationsClient = notificationsClient;
     }
 
-            public JoinRequestDTO sendJoinRequest(JoinRequestDTO joinRequestDTO) throws MessagingException {
+            public JoinRequestDTO sendJoinRequest(JoinRequestDTO joinRequestDTO)  {
         Integer userId = joinRequestDTO.getUserId();
         Integer tripId = joinRequestDTO.getTripId();
         if(joinRequestRepository.existsByTrip_TripId(tripId) && joinRequestRepository.existsByUser_UserId(userId)) {
@@ -60,29 +61,24 @@ public class JoinRequestService {
         request.setTrip(trip);
         request.setMessage(joinRequestDTO.getMessage());
         request.setStatus(RequestStatus.PENDING);
-        // Construir los enlaces de aceptar/rechazar
+
+
 
         String tripUrl = URL + "/viajes/" + trip.getTripId();
-                // Crear el contenido HTML del email
                 String email = request.getTrip().getOwner().getEmail();
                 String subject = "Nueva solicitud para tu viaje";
-                String htmlContent = String.format(
-                        "<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'>"
-                                + "<h1 style='color: #333;'>Solicitud para unirse a tu viaje</h1>"
-                                + "<p style='font-size: 16px;'>El usuario <strong>%s</strong> ha solicitado unirse a tu viaje hacia <strong>%s</strong>.</p>"
-                                + "<p style='font-size: 16px;'>Haz clic en el botón de abajo para gestionar las solicitudes.</p>"
-                                + "<div style='margin-top: 20px;'>"
-                                + "    <a href='%s' style='text-decoration: none; padding: 12px 24px; color: white; "
-                                + "        background-color: #007BFF; border-radius: 5px; font-weight: bold; font-size: 16px; "
-                                + "        display: inline-block;'>Ver Solicitudes</a>"
-                                + "</div>"
-                                + "</div>",
-                        request.getUser().getFirstName(),  // Nombre del usuario que hizo la solicitud
-                        request.getTrip().getDestination().getCity(),  // Destino del viaje
-                        tripUrl   // URL donde se pueden ver las solicitudes
-                );
+                String message = "El usuario " + request.getUser().getFirstName() + " A solicitado unirse a tu viaje " + trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity();
+                NotificationModel notificationModel = new NotificationModel();
 
-                emailService.sendHtmlEmail(email , subject , htmlContent);
+                notificationModel.setTitle(subject);
+                notificationModel.setMessage(message);
+                notificationModel.setNotificationType(NotificationType.JOIN_REQUEST);
+                notificationModel.setTripId(tripId);
+                notificationModel.setUserId(userId);
+                notificationModel.setRecipientEmails(List.of(email));
+                notificationModel.setButtonTitle("Ver solicitudes");
+                notificationModel.setActionData(tripUrl);
+                notificationsClient.sendNotification(notificationModel);
 
 
 

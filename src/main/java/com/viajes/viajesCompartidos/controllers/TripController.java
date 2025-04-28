@@ -146,5 +146,15 @@ public class TripController {
         return ResponseEntity.status(HttpStatus.OK).body(chatService.getChat(tripId));
     }
 
+    @PostMapping("/alerts")
+    public ResponseEntity<TripAlertDTO> createTripAlert(@RequestBody TripAlertDTO tripAlertDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(tripService.createTripAlert(tripAlertDTO));
+    }
+
+    @GetMapping("/alerts/userId/{userid}")
+    public ResponseEntity<List<TripAlertDTO>> getAllTripAlertsOfUser(@PathVariable int userid) {
+        return ResponseEntity.ok(tripService.getAllTripsAlertsOfUser(userid));
+    }
+
 
 }

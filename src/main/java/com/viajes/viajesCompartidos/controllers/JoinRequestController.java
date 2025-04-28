@@ -8,7 +8,6 @@ import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.services.JoinRequestService;
-import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +32,6 @@ public class JoinRequestController {
             return ResponseEntity.status(HttpStatus.CREATED).body(joinRequestService.sendJoinRequest(joinRequestDTO));
         } catch (TripNotFoundException | UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (MessagingException m) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(m.getMessage());
         }
     }
 

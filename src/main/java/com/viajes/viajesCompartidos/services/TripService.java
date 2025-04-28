@@ -6,10 +6,10 @@ import java.text.Normalizer;
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.GenericResponseDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
-import com.viajes.viajesCompartidos.DTO.chat.ChatDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
+import com.viajes.viajesCompartidos.clients.NotificationsClient;
 import com.viajes.viajesCompartidos.entities.*;
 
 import com.viajes.viajesCompartidos.enums.TransactionType;
@@ -21,32 +21,37 @@ import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundExceptio
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
+import com.viajes.viajesCompartidos.models.NotificationModel;
 import com.viajes.viajesCompartidos.repositories.*;
 
 
 import com.viajes.viajesCompartidos.services.payments.WalletService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.*;
 
 @Service
 public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final ChatRepository chatRepository;
+    private final NotificationsClient notificationsClient;
     private final JoinRequestRepository joinRequestRepository;
     private final LocationRepository locationRepository;
     private final WalletService walletService;
     private final double tolerance;
+    private final TripAlertRepository tripAlertRepository;
     private static final Map<Integer, Double> REFUND_POLICY = Map.of(
             24, 1.0,  // 100% de reembolso
             12, 0.75, // 75% de reembolso
@@ -54,15 +59,20 @@ public class TripService {
             2, 0.20   // 20% de reembolso
     );
 
+    @Value("${url.front-end.domain}")
+    private String URL;
+
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, ChatRepository chatRepository, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, ChatRepository chatRepository, NotificationsClient notificationsClient, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService, TripAlertRepository tripAlertRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.chatRepository = chatRepository;
+        this.notificationsClient = notificationsClient;
         this.joinRequestRepository = joinRequestRepository;
         this.locationRepository = locationRepository;
         this.walletService = walletService;
+        this.tripAlertRepository = tripAlertRepository;
         this.tolerance = 5.0;
 
     }
@@ -78,15 +88,15 @@ public class TripService {
         Specification<Trip> passengersFilter = TripSpecifications.atLeastPassengers(filterTripDTO.getMax_passengers());
         Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate(), filterTripDTO.getEndDate());
         Specification<Trip> availabilityFilter = TripSpecifications.isAvailableForUser(filterTripDTO.getUserId());
-        Specification<Trip> maxPrice = TripSpecifications.maxPrice(filterTripDTO.getMaxPrice()) ;
+        Specification<Trip> maxPrice = TripSpecifications.maxPrice(filterTripDTO.getMaxPrice());
         Specification<Trip> spec = Specification.where(null);
 
-        if(filterTripDTO.getStrict().equals("false")) {
+        if (filterTripDTO.getStrict().equals("false")) {
             Specification<Trip> locationFilter = Specification.where(originFilter).or(destinationFilter);
 
             spec = spec.and(locationFilter)
                     .and(availabilityFilter);
-        }else {
+        } else {
             spec = spec
                     .and(originFilter)
                     .and(destinationFilter)
@@ -124,7 +134,7 @@ public class TripService {
         expense.setTransactionType(TransactionType.EXPENSE);
         expense.setWalletId(user.getWallet().getId());
 
-        walletService.addTransaction(user.getUserId() , expense);
+        walletService.addTransaction(user.getUserId(), expense);
 
         // Persistir los cambios en la base de datos
         tripRepository.save(trip);
@@ -157,7 +167,7 @@ public class TripService {
                 trip.getDestination().getExactPlace()
         );
 
-        Location destination = maybeLocationDestination.orElseGet(()-> {
+        Location destination = maybeLocationDestination.orElseGet(() -> {
             Location location = new Location();
             location.setLongitude(trip.getDestination().getCityLongitude());
             location.setLatitude(trip.getDestination().getCityLatitude());
@@ -168,22 +178,22 @@ public class TripService {
         });
 
 
-
-
-        Trip newTrip = new Trip(origin , destination , trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(),trip.getTripType() );
+        Trip newTrip = new Trip(origin, destination, trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.getTripType());
 
         newTrip = tripRepository.save(newTrip);
 
+        checkPossibleMatches(newTrip);
         return new OutputTripDTO(newTrip);
 
 
     }
 
+
     public OutputTripDTO updateTrip(InputTripDTO trip, int tripId) {
 
         Trip tripUpdated = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
-        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(()-> new LocationNotFoundException("Location not found"));
-        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(()-> new LocationNotFoundException("Location not found"));
+        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(() -> new LocationNotFoundException("Location not found"));
+        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(() -> new LocationNotFoundException("Location not found"));
         if (isBadRequest(trip)) {
             throw new BadRequestException("Bad Request , check the fields and try again");
         }
@@ -198,8 +208,10 @@ public class TripService {
         tripUpdated.setTripType(trip.getTripType());
         tripUpdated = tripRepository.save(tripUpdated);
 
+        checkPossibleMatches(tripUpdated);
         return new OutputTripDTO(tripUpdated);
     }
+
     @Transactional
     public GenericResponseDTO deleteTrip(int id) {
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException("Trip not found"));
@@ -229,7 +241,7 @@ public class TripService {
     public OutputTripPassengerDTO removePassengerFromTrip(int tripId, int userId) {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
-        JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId , userId).orElseThrow(() -> new JoinRequestNotFoundException("Join request not found"));
+        JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId, userId).orElseThrow(() -> new JoinRequestNotFoundException("Join request not found"));
 
         trip.removePassenger(user);
         long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
@@ -239,7 +251,7 @@ public class TripService {
         refundTransactionDTO.setAmount(refundAmount);
         refundTransactionDTO.setTransactionType(TransactionType.RECHARGE);
         refundTransactionDTO.setWalletId(user.getWallet().getId());
-        walletService.addTransaction(user.getUserId() ,refundTransactionDTO);
+        walletService.addTransaction(user.getUserId(), refundTransactionDTO);
         tripRepository.save(trip);
         joinRequestRepository.delete(joinRequest);
         joinRequestRepository.flush();
@@ -273,8 +285,8 @@ public class TripService {
     }
 
 
-    public List<OutputTripPreviewDTO> getTripsByOwnerId(int userId , TripStatus status) {
-        if(!userRepository.existsById(userId)) {
+    public List<OutputTripPreviewDTO> getTripsByOwnerId(int userId, TripStatus status) {
+        if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         Specification<Trip> specOwner = TripSpecifications.isEqualOwnerId(userId);
@@ -286,9 +298,10 @@ public class TripService {
                 .map(OutputTripPreviewDTO::new)
                 .toList();
     }
+
     public List<OutputTripPreviewDTO> getTripsOfUser(Integer userId) {
 
-        if(!userRepository.existsById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         return tripRepository
@@ -297,8 +310,9 @@ public class TripService {
                 .map(OutputTripPreviewDTO::new)
                 .toList();
     }
+
     public List<OutputTripPreviewDTO> getTripsByPassengerId(Integer userId) {
-        if(!userRepository.existsById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User not found");
         }
         return tripRepository
@@ -307,15 +321,16 @@ public class TripService {
                 .map(OutputTripPreviewDTO::new)
                 .toList();
     }
-    public List<OutputTripPreviewDTO> getTripByUserIdRolAndStatus(Integer userId, String rol,TripStatus status) {
+
+    public List<OutputTripPreviewDTO> getTripByUserIdRolAndStatus(Integer userId, String rol, TripStatus status) {
         List<OutputTripPreviewDTO> trips = null;
         if ("driver".equalsIgnoreCase(rol)) {
-            trips = this.getTripsByOwnerId(userId , status);
+            trips = this.getTripsByOwnerId(userId, status);
         } else if ("passenger".equalsIgnoreCase(rol)) {
             trips = this.getTripsByPassengerId(userId);
         }
         if (trips == null) {
-            throw  new BadRequestException("No trips found , check your parameters");
+            throw new BadRequestException("No trips found , check your parameters");
         }
 
         return trips;
@@ -379,4 +394,100 @@ public class TripService {
     }
 
 
+    public TripAlertDTO createTripAlert(TripAlertDTO tripAlertDTO) {
+        User user = userRepository.findById(tripAlertDTO.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        TripAlert tripAlert = new TripAlert();
+        tripAlert.setUser(user);
+        tripAlert.setCreatedAt(LocalDateTime.now());
+        tripAlert.setOrigin(tripAlertDTO.getOrigin());
+        tripAlert.setDestination(tripAlertDTO.getDestination());
+        tripAlert.setActive(true);
+        tripAlert.setStartDate(tripAlertDTO.getDateFrom());
+        tripAlert.setEndDate(tripAlertDTO.getDateTo());
+        tripAlert.setMaxPrice(tripAlertDTO.getMaxPrice());
+        this.tripAlertRepository.save(tripAlert);
+
+        return new TripAlertDTO(tripAlert);
+
+
+    }
+
+    public List<TripAlertDTO> getAllTripsAlertsOfUser(int userid) {
+        if (!userRepository.existsById(userid)) {
+            throw new UserNotFoundException("User not found");
+        }
+        return tripAlertRepository
+                .findAllByUserId(userid)
+                .stream()
+                .map(TripAlertDTO::new)
+                .toList();
+    }
+
+    public void checkPossibleMatches(Trip trip) {
+
+        List<TripAlert> tripAlerts = tripAlertRepository.findAllByActiveTrueOrderByCreatedAtAsc();
+        Map<User, List<Trip>> userMatches = new HashMap<>();
+
+
+        for (TripAlert tripAlert : tripAlerts) {
+            if (this.tripAlertMatch(tripAlert, trip)) {
+                userMatches
+                        .computeIfAbsent(tripAlert.getUser(), k -> new ArrayList<>())
+                        .add(trip);
+                tripAlert.setActive(false);
+            }
+        }
+
+        for (Map.Entry<User, List<Trip>> entry : userMatches.entrySet()) {
+            User user = entry.getKey();
+            List<Trip> matchedTrips = entry.getValue();
+            String notificationMessage = buildNotificationMessage(matchedTrips);
+
+            NotificationModel notificationModel = new NotificationModel();
+            notificationModel.setTitle("Alerta de viajes");
+            notificationModel.setMessage(notificationMessage);
+            notificationModel.setButtonTitle("Ver viajes");
+            notificationModel.setActionData(this.URL + "/viajes/alertas"); // Podrías mandarlo a su sección de alertas o algo similar
+            notificationModel.setRecipientEmails(List.of(user.getEmail()));
+            notificationsClient.sendNotification(notificationModel);
+        }
+
+    }
+    private String buildNotificationMessage(List<Trip> matchedTrips) {
+        StringBuilder message = new StringBuilder();
+        for (Trip matchedTrip : matchedTrips) {
+            DayOfWeek dayOfWeek = matchedTrip.getDate().getDayOfWeek();
+            String dayName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"));
+
+            LocalTime time = matchedTrip.getDate().toLocalTime();
+            String timeFormatted = time.format(DateTimeFormatter.ofPattern("HH:mm"));
+
+            message
+                    .append("Viaje ")
+                    .append(matchedTrip.getOrigin().getCity())
+                    .append(" -> ")
+                    .append(matchedTrip.getDestination().getCity())
+                    .append(" el ")
+                    .append(dayName)
+                    .append(" a las ")
+                    .append(timeFormatted)
+                    .append("\n");
+        }
+        return message.toString();
+    }
+
+
+    private boolean tripAlertMatch(TripAlert tripAlert, Trip trip) {
+        boolean matchOrigin = tripAlert.getOrigin().contains(trip.getOrigin().getCity());
+        boolean matchDestination = tripAlert.getDestination().contains(trip.getDestination().getCity());
+        boolean matchRangeDate = (!trip.getDate().isBefore(tripAlert.getStartDate())) &&
+                                    (!trip.getDate().isAfter(tripAlert.getEndDate()));
+        boolean matchMaxPrice = trip.getPrice() <= tripAlert.getMaxPrice();
+
+        return matchOrigin && matchDestination && matchRangeDate && matchMaxPrice;
+
+
+    }
 }
+
