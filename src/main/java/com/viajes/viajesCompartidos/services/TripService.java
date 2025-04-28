@@ -6,6 +6,7 @@ import java.text.Normalizer;
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.GenericResponseDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
+import com.viajes.viajesCompartidos.DTO.location.InputLocationDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
@@ -148,35 +149,24 @@ public class TripService {
         return new OutputTripDTO(trip);
     }
 
-    public OutputTripDTO saveTrip(InputTripDTO trip) {
-        User owner = userRepository.findById(trip.getOwnerId()).orElseThrow(() -> new UserNotFoundException("User not found"));
-        Optional<Location> maybeLocationOrigin = locationRepository.findByCityAndExactPlace(
-                trip.getOrigin().getCityName(),
-                trip.getOrigin().getExactPlace()
+    private Location findOrCreateLocation(InputLocationDTO inputLocationDTO) {
+        Optional<Location> maybeLocation = locationRepository.findByCityAndExactPlace(
+                inputLocationDTO.getCityName(),
+                inputLocationDTO.getExactPlace()
         );
-        Location origin = maybeLocationOrigin.orElseGet(() -> {
+        return maybeLocation.orElseGet(() -> {
             Location loc = new Location();
-            loc.setCity(trip.getOrigin().getCityName());
-            loc.setLatitude(trip.getOrigin().getCityLatitude());
-            loc.setLongitude(trip.getOrigin().getCityLongitude());
-            loc.setExactPlace(trip.getOrigin().getExactPlace());
+            loc.setCity(inputLocationDTO.getCityName());
+            loc.setLatitude(inputLocationDTO.getCityLatitude());
+            loc.setLongitude(inputLocationDTO.getCityLongitude());
+            loc.setExactPlace(inputLocationDTO.getExactPlace());
             return locationRepository.save(loc);
         });
-        Optional<Location> maybeLocationDestination = locationRepository.findByCityAndExactPlace(
-                trip.getDestination().getCityName(),
-                trip.getDestination().getExactPlace()
-        );
-
-        Location destination = maybeLocationDestination.orElseGet(() -> {
-            Location location = new Location();
-            location.setLongitude(trip.getDestination().getCityLongitude());
-            location.setLatitude(trip.getDestination().getCityLatitude());
-            location.setExactPlace(trip.getDestination().getExactPlace());
-            location.setCity(trip.getDestination().getCityName());
-            locationRepository.save(location);
-            return location;
-        });
-
+    }
+    public OutputTripDTO saveTrip(InputTripDTO trip) {
+        User owner = userRepository.findById(trip.getOwnerId()).orElseThrow(() -> new UserNotFoundException("User not found"));
+        Location origin = this.findOrCreateLocation(trip.getOrigin());
+        Location destination = this.findOrCreateLocation(trip.getDestination());
 
         Trip newTrip = new Trip(origin, destination, trip.getDate(), owner, trip.getMaxPassengers(), trip.getPrice(), trip.getComment(), trip.getTripType());
 
@@ -187,30 +177,64 @@ public class TripService {
 
 
     }
+    public Location createCopyOfLocation(InputLocationDTO newLocationData) {
+
+        Location newLocation = new Location();
+        newLocation.setCity(newLocationData.getCityName());
+        newLocation.setExactPlace(newLocationData.getExactPlace());
+        newLocation.setLatitude(newLocationData.getCityLatitude());
+        newLocation.setLongitude(newLocationData.getCityLongitude());
+
+        return locationRepository.save(newLocation);
+
+
+    }
 
 
     public OutputTripDTO updateTrip(InputTripDTO trip, int tripId) {
 
-        Trip tripUpdated = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
-        Location origin = locationRepository.findByCity(trip.getOrigin().getCityName()).orElseThrow(() -> new LocationNotFoundException("Location not found"));
-        Location destination = locationRepository.findByCity(trip.getDestination().getCityName()).orElseThrow(() -> new LocationNotFoundException("Location not found"));
+        Trip tripUpdated = tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
         if (isBadRequest(trip)) {
-            throw new BadRequestException("Bad Request , check the fields and try again");
+            throw new BadRequestException("Bad Request, check the fields and try again");
         }
-        tripUpdated.setOrigin(origin);
-        tripUpdated.setDestination(destination);
+
+        if (locationChanged(trip.getOrigin(), tripUpdated.getOrigin())) {
+            Location newOrigin = createCopyOfLocation(trip.getOrigin());
+            tripUpdated.setOrigin(newOrigin);
+        }
+
+        if (locationChanged(trip.getDestination(), tripUpdated.getDestination())) {
+            Location newDestination = createCopyOfLocation(trip.getDestination());
+            tripUpdated.setDestination(newDestination);
+        }
+
         tripUpdated.setDate(trip.getDate());
-        if (trip.getMaxPassengers() < tripUpdated.getCountPassengers())
+
+        if (trip.getMaxPassengers() < tripUpdated.getCountPassengers()) {
             throw new IllegalArgumentException("Max passengers could not be lower than the count of passengers on board");
+        }
+
         tripUpdated.setMaxPassengers(trip.getMaxPassengers());
         tripUpdated.setComment(trip.getComment());
         tripUpdated.setPrice(trip.getPrice());
         tripUpdated.setTripType(trip.getTripType());
+
         tripUpdated = tripRepository.save(tripUpdated);
 
         checkPossibleMatches(tripUpdated);
+
         return new OutputTripDTO(tripUpdated);
     }
+    private boolean locationChanged(InputLocationDTO newLoc, Location currentLoc) {
+        if (currentLoc == null) return true;
+        return !Objects.equals(newLoc.getCityName(), currentLoc.getCity())
+                || !Objects.equals(newLoc.getExactPlace(), currentLoc.getExactPlace())
+                || !Objects.equals(newLoc.getCityLatitude(), currentLoc.getLatitude())
+                || !Objects.equals(newLoc.getCityLongitude(), currentLoc.getLongitude());
+    }
+
 
     @Transactional
     public GenericResponseDTO deleteTrip(int id) {
