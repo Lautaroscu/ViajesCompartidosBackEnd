@@ -19,6 +19,7 @@ public class UserPassengerDTO implements Serializable {
     private String lastName;
     private BigDecimal valoration;
     private LocalDate registeredAt;
+    private String phoneNumber;
 
     public UserPassengerDTO(User user){
         this.id = user.getUserId();

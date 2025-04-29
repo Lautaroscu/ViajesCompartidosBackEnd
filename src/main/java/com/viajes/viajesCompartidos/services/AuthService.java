@@ -62,6 +62,7 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
     }
+
     public String exctractUsername(String token) {
         return jwtUtil.extractUsername(token);
     }
