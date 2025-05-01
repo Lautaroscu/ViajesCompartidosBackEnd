@@ -1,9 +1,6 @@
 package com.viajes.viajesCompartidos.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,10 +9,10 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class NotificationModel implements Serializable {
     private long id;
     private int userId;
-    private int tripId;
 
     private NotificationType notificationType;
 
@@ -24,7 +21,6 @@ public class NotificationModel implements Serializable {
 
     private String buttonTitle;
 
-    private String redirectButtonTitle;
 
     private String actionData;
 

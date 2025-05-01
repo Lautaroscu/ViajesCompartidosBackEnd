@@ -14,6 +14,7 @@ import com.viajes.viajesCompartidos.models.NotificationType;
 import com.viajes.viajesCompartidos.repositories.JoinRequestRepository;
 import com.viajes.viajesCompartidos.repositories.TripRepository;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -68,17 +69,15 @@ public class JoinRequestService {
                 String email = request.getTrip().getOwner().getEmail();
                 String subject = "Nueva solicitud para tu viaje";
                 String message = "El usuario " + request.getUser().getFirstName() + " A solicitado unirse a tu viaje " + trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity();
-                NotificationModel notificationModel = new NotificationModel();
-
-                notificationModel.setTitle(subject);
-                notificationModel.setMessage(message);
-                notificationModel.setNotificationType(NotificationType.JOIN_REQUEST);
-                notificationModel.setTripId(tripId);
-                notificationModel.setUserId(userId);
-                notificationModel.setRecipientEmails(List.of(email));
-                notificationModel.setButtonTitle("Ver solicitudes");
-                notificationModel.setActionData(tripUrl);
-                notificationsClient.sendNotification(notificationModel);
+              NotificationModel notificationModel =  NotificationModel.builder()
+                        .title(subject)
+                        .message(message)
+                        .buttonTitle("Ver viaje")
+                        .actionData(tripUrl)
+                        .recipientEmails(List.of(email))
+                        .userId(userId)
+                        .build();
+              notificationsClient.sendNotification(notificationModel);
 
 
 
@@ -93,6 +92,22 @@ public class JoinRequestService {
 
         request.setStatus(status.getStatus());
         request = joinRequestRepository.save(request);
+        String message = "";
+        if(status.getStatus() == RequestStatus.ACCEPTED) {
+            message = "El anfitrion del viaje a aceptado tu solicitud para unirte al viaje";
+        }
+        if(status.getStatus() == RequestStatus.REJECTED) {
+            message = "El anfitrion del viaje a rechazado tu solicitud para unirte al viaje";
+        }
+      NotificationModel notificationModel =  NotificationModel.builder()
+                .title("Actualizacion sobre tu solicitud de viaje")
+                .message(message)
+                .buttonTitle("Buscar viajes")
+                .actionData(URL + "/viajes")
+                .recipientEmails(List.of(request.getUser().getEmail()))
+                .userId(request.getUser().getUserId())
+                .build();
+        notificationsClient.sendNotification(notificationModel);
         return new JoinRequestDTO(request);
     }
 
