@@ -27,5 +27,6 @@ public class UserPassengerDTO implements Serializable {
         this.lastName = user.getLastName();
         this.valoration = user.getValoration();
         this.registeredAt = user.getRegisteredAt();
+        this.phoneNumber = user.getPhone();
     }
 }
