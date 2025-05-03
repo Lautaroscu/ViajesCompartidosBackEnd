@@ -46,6 +46,7 @@ public class UserService {
     }
 
     public OutputUserDTO getUser(String email) {
+        System.out.println(email);
         User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("User not found" ) );
         return new OutputUserDTO(user);
     }
@@ -196,6 +197,19 @@ public class UserService {
         }
         return new PredeterminedDTO(isPred);
 
+    }
+
+    public OutputUserDTO createUser(InputUserDTO userDTO) {
+        User user = new User();
+        user.setFirstName(userDTO.getName());
+        user.setLastName(userDTO.getLastName());
+        user.setPhone(userDTO.getPhoneNumber());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
+        user.setResidenceCity(userDTO.getResidenceCity());
+
+        user = userRepository.save(user);
+       return new OutputUserDTO(user);
     }
 }
 

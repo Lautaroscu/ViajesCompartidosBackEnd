@@ -32,6 +32,10 @@ public class UserController {
         this.walletService = walletService;
     }
 
+    @PostMapping
+    public ResponseEntity<OutputUserDTO> createUser(@RequestBody InputUserDTO userDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userDTO));
+    }
     @GetMapping
     public ResponseEntity<List<OutputUserDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers());
