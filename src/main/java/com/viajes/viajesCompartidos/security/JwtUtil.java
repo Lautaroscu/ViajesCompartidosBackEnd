@@ -19,7 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 @Component
 public class JwtUtil {
     @Value("${jwt.secret-key}")
-    private String secretKey = "MKqlCiDlaNwOhmEVNrpTDoG5wPIrx31y+4430uN96j0";
+    private String secretKey;
 
     private Key key;
 
