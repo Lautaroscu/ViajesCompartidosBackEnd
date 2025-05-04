@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@WebFilter(urlPatterns = "/api/**")
 public class InternalRequestFilter extends OncePerRequestFilter {
 
     @Value("${internal.secret}")
@@ -21,8 +20,13 @@ public class InternalRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        if(requestURI.startsWith("/api/geonames")) {
+            chain.doFilter(request, response);
+            return;
+        }
         String incomingSecret = request.getHeader("X-Internal-Secret");
-        System.out.println(incomingSecret);
+
 
         if (incomingSecret == null || !incomingSecret.equals(internalSecret)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
