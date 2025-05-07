@@ -2,6 +2,7 @@ package com.viajes.viajesCompartidos.controllers;
 
 
 import com.viajes.viajesCompartidos.DTO.ErrorResponse;
+import com.viajes.viajesCompartidos.DTO.GenericResponseDTO;
 import com.viajes.viajesCompartidos.DTO.OutputTripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.TripPassengerDTO;
 import com.viajes.viajesCompartidos.DTO.trip.*;
@@ -156,5 +157,15 @@ public class TripController {
         return ResponseEntity.ok(tripService.getAllTripsAlertsOfUser(userid));
     }
 
+    @GetMapping("/ping")
+    public ResponseEntity<?> ping() {
+        return ResponseEntity.status(HttpStatus.OK).body("pong");
+    }
+
+    @PostMapping("/{tripId}/reminder")
+    public ResponseEntity<?> sendReminder(@PathVariable int tripId) {
+        tripService.sendTripReminder(tripId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new GenericResponseDTO(true , "Reminder Sent"));
+    }
 
 }

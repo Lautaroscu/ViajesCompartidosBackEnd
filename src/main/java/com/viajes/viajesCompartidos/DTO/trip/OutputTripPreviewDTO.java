@@ -1,6 +1,7 @@
 package com.viajes.viajesCompartidos.DTO.trip;
 
 import com.viajes.viajesCompartidos.entities.Trip;
+import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.enums.TripType;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class OutputTripPreviewDTO implements Serializable {
     private BigDecimal ownerValoration;
     private TripType tripType;
     private boolean hasChat;
+    private TripStatus tripStatus;
 
     public OutputTripPreviewDTO(Trip trip) {
         this.tripId = trip.getTripId();
@@ -39,6 +41,7 @@ public class OutputTripPreviewDTO implements Serializable {
         this.tripType = trip.getTripType();
         hasChat = trip.getChat() != null;
         ownerValoration = trip.getOwner().getValoration();
+        tripStatus = trip.getStatus();
 
     }
 

@@ -18,11 +18,11 @@ import com.viajes.viajesCompartidos.enums.TripStatus;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.JoinRequestNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.location.InvalidLocationException;
-import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.models.NotificationModel;
+import com.viajes.viajesCompartidos.models.NotificationType;
 import com.viajes.viajesCompartidos.repositories.*;
 
 
@@ -510,6 +510,26 @@ public class TripService {
         boolean matchMaxPrice = trip.getPrice() <= tripAlert.getMaxPrice();
 
         return matchOrigin && matchDestination && matchRangeDate && matchMaxPrice;
+
+
+    }
+
+    public void sendTripReminder(int tripId) {
+        Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+        NotificationModel notificationModel = new NotificationModel();
+        notificationModel.setTitle("Recordatorio de viaje");
+        notificationModel.setMessage(trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity());
+        notificationModel.setButtonTitle("Ver viaje");
+        notificationModel.setActionData(this.URL + "/viajes/" + trip.getTripId());
+        notificationModel.setNotificationType(NotificationType.REMINDER);
+        notificationModel.setCreatedAt(LocalDateTime.now());
+       List<String> passengers = new ArrayList<>();
+       for(User user : trip.getPassengers()) {
+           passengers.add(user.getEmail());
+       }
+       notificationModel.setRecipientEmails(passengers);
+
+        notificationsClient.sendNotification(notificationModel);
 
 
     }
