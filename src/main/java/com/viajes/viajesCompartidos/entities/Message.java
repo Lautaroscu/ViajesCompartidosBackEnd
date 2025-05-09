@@ -3,6 +3,7 @@ package com.viajes.viajesCompartidos.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 public class Message {
@@ -27,7 +28,8 @@ public class Message {
     private LocalDateTime timestamp;
 
     public Message() {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"));
+
     }
 
     // Getters and Setters
