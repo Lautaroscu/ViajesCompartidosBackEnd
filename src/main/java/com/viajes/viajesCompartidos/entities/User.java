@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +53,8 @@ public class User {
 
 
     public User() {
-        registeredAt = LocalDate.now();
+        ZoneId zoneId =ZoneId.of("America/Argentina/Buenos_Aires");
+        registeredAt = LocalDate.now(zoneId);
         vehicles = new ArrayList<>();
         valoration = BigDecimal.ZERO;
         wallet = new Wallet(this);
