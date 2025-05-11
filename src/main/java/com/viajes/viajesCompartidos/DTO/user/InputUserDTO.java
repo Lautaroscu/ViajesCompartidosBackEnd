@@ -8,7 +8,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class InputUserDTO implements Serializable {
-    private String name;
+    private String firstName;
     private String lastName;
     private String phoneNumber;
     private String email;
@@ -16,7 +16,7 @@ public class InputUserDTO implements Serializable {
     private String residenceCity;
 
     public InputUserDTO(String name , String lastName , String phoneNumber ,  String email,String password , String residenceCity) {
-        this.name = name;
+        this.firstName = name;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.email = email;

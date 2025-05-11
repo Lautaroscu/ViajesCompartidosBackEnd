@@ -46,7 +46,6 @@ public class UserService {
     }
 
     public OutputUserDTO getUser(String email) {
-        System.out.println(email);
         User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("User not found" ) );
         return new OutputUserDTO(user);
     }
@@ -60,7 +59,7 @@ public class UserService {
             throw new UserNotFoundException("User not found");
         }
         User userById = userRepository.findById(id).get();
-        userById.setFirstName(userDTO.getName());
+        userById.setFirstName(userDTO.getFirstName());
         userById.setLastName(userDTO.getLastName());
         userById.setPhone(userDTO.getPhoneNumber());
         userById = userRepository.save(userById);
@@ -74,7 +73,7 @@ public class UserService {
     }
 
     private boolean isBadRequest(InputUserDTO dto) {
-        return dto.getName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
+        return dto.getFirstName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
     }
 
 
@@ -201,7 +200,7 @@ public class UserService {
 
     public OutputUserDTO createUser(InputUserDTO userDTO) {
         User user = new User();
-        user.setFirstName(userDTO.getName());
+        user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         user.setPhone(userDTO.getPhoneNumber());
         user.setEmail(userDTO.getEmail());
