@@ -2,13 +2,12 @@ package com.viajes.viajesCompartidos.controllers;
 
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
-import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
+import com.viajes.viajesCompartidos.DTO.user.PasswordDTO;
+import com.viajes.viajesCompartidos.DTO.user.VerifyDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
 import com.viajes.viajesCompartidos.enums.TransactionType;
-import com.viajes.viajesCompartidos.exceptions.BadRequestException;
-import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
-import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
+
 import com.viajes.viajesCompartidos.services.UserService;
 import com.viajes.viajesCompartidos.services.payments.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +134,26 @@ public class UserController {
         return ResponseEntity.ok(walletService.getTopXTransactionsByType(userId, type, maxResults));
 
     }
+
+    @PatchMapping("/{userId}/verifyEmail")
+    public ResponseEntity<?> updateEmailStatus(@PathVariable int userId , @RequestBody VerifyDTO verifyDTO) {
+        userService.verifyEmail(userId,verifyDTO);
+        return ResponseEntity.ok().build();
+    }
+    @PatchMapping("/{userId}/verifyPhone")
+    public ResponseEntity<?> updatePhoneStatus(@PathVariable int userId , @RequestBody VerifyDTO verifyDTO) {
+        userService.verifyPhone(userId ,verifyDTO);
+        return ResponseEntity.ok().build();
+    }
+    @PatchMapping("/{userEmail}/update-password")
+    public ResponseEntity<?> updateUserPassword(@PathVariable String userEmail, @RequestBody PasswordDTO password) {
+        userService.updateUserPassword(userEmail , password);
+        return ResponseEntity.ok().build();
+
+    }
+
+
+
 
 
 }

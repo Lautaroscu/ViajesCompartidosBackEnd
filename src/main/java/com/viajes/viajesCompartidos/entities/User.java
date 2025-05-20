@@ -51,6 +51,12 @@ public class User {
     @Column
     private String residenceCity;
 
+    @Column
+    private boolean verifiedEmail;
+
+    @Column
+    private boolean verifiedPhone;
+
 
     public User() {
         ZoneId zoneId =ZoneId.of("America/Argentina/Buenos_Aires");
@@ -58,6 +64,8 @@ public class User {
         vehicles = new ArrayList<>();
         valoration = BigDecimal.ZERO;
         wallet = new Wallet(this);
+        this.verifiedEmail = false;
+        this.verifiedPhone = false;
 
     }
 

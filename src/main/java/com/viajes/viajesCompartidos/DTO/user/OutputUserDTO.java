@@ -25,6 +25,7 @@ public class OutputUserDTO implements Serializable {
     private BigDecimal valoration;
     private VehicleDTO vehiclePredetermined;
     private String password;
+    private boolean verifiedEmail , verifiedPhone;
 
 
     public OutputUserDTO(User user) {
@@ -39,6 +40,8 @@ public class OutputUserDTO implements Serializable {
                             this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredetermined).map(VehicleDTO::new).findFirst().orElse(null);
         this.registeredAt = user.getRegisteredAt();
         this.password = user.getPassword();
+        this.verifiedEmail = user.isVerifiedEmail();
+        this.verifiedPhone = user.isVerifiedPhone();
     }
 
 }

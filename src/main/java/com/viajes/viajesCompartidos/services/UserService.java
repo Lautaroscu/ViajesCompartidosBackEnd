@@ -2,6 +2,8 @@ package com.viajes.viajesCompartidos.services;
 
 import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
 import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
+import com.viajes.viajesCompartidos.DTO.user.PasswordDTO;
+import com.viajes.viajesCompartidos.DTO.user.VerifyDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDeleteResponseDTO;
@@ -209,6 +211,24 @@ public class UserService {
 
         user = userRepository.save(user);
        return new OutputUserDTO(user);
+    }
+
+    public void verifyEmail(int userId ,VerifyDTO verifyDTO) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setVerifiedEmail(verifyDTO.isVerified());
+        userRepository.save(user);
+    }
+
+    public void verifyPhone(int userId ,VerifyDTO verifyDTO) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setVerifiedPhone(verifyDTO.isVerified());
+        userRepository.save(user);
+    }
+
+    public void updateUserPassword(String userEmail, PasswordDTO password) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setPassword(password.getPassword());
+        userRepository.save(user);
     }
 }
 
