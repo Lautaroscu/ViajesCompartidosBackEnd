@@ -34,10 +34,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -46,7 +43,6 @@ import java.util.*;
 public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
-    private final ChatRepository chatRepository;
     private final NotificationsClient notificationsClient;
     private final JoinRequestRepository joinRequestRepository;
     private final LocationRepository locationRepository;
@@ -65,10 +61,9 @@ public class TripService {
 
     @Autowired
 
-    public TripService(TripRepository tripRepository, UserRepository userRepository, ChatRepository chatRepository, NotificationsClient notificationsClient, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService, TripAlertRepository tripAlertRepository) {
+    public TripService(TripRepository tripRepository, UserRepository userRepository, NotificationsClient notificationsClient, JoinRequestRepository joinRequestRepository, LocationRepository locationRepository, WalletService walletService, TripAlertRepository tripAlertRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
-        this.chatRepository = chatRepository;
         this.notificationsClient = notificationsClient;
         this.joinRequestRepository = joinRequestRepository;
         this.locationRepository = locationRepository;
@@ -163,6 +158,7 @@ public class TripService {
             return locationRepository.save(loc);
         });
     }
+
     public OutputTripDTO saveTrip(InputTripDTO trip) {
         User owner = userRepository.findById(trip.getOwnerId()).orElseThrow(() -> new UserNotFoundException("User not found"));
         Location origin = this.findOrCreateLocation(trip.getOrigin());
@@ -177,6 +173,7 @@ public class TripService {
 
 
     }
+
     public Location createCopyOfLocation(InputLocationDTO newLocationData) {
 
         Location newLocation = new Location();
@@ -195,6 +192,9 @@ public class TripService {
 
         Trip tripUpdated = tripRepository.findById(tripId)
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+    boolean destinationChanged = !trip.getOrigin().getCityName().equals(tripUpdated.getOrigin().getCity()) || !trip.getDestination().getCityName().equals(tripUpdated.getDestination().getCity());
+    boolean  dateChanged = !trip.getDate().equals(tripUpdated.getDate());
+    boolean priceChanged = trip.getPrice() != tripUpdated.getPrice();
 
         if (isBadRequest(trip)) {
             throw new BadRequestException("Bad Request, check the fields and try again");
@@ -223,10 +223,13 @@ public class TripService {
 
         tripUpdated = tripRepository.save(tripUpdated);
 
-        checkPossibleMatches(tripUpdated);
+        if(destinationChanged || dateChanged || priceChanged) {
+            checkPossibleMatches(tripUpdated);
+        }
 
         return new OutputTripDTO(tripUpdated);
     }
+
     private boolean locationChanged(InputLocationDTO newLoc, Location currentLoc) {
         if (currentLoc == null) return true;
         return !Objects.equals(newLoc.getCityName(), currentLoc.getCity())
@@ -478,11 +481,20 @@ public class TripService {
         }
 
     }
+
+    private String getDayOfWeek(LocalDateTime dateTime) {
+        DayOfWeek dayOfWeek = dateTime.getDayOfWeek();
+        return TripService.capitalizeStr(dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")));
+    }
+
+    private String getMonthOfYear(LocalDateTime dateTime) {
+        Month month = dateTime.getMonth();
+        return month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"));
+    }
+
     private String buildNotificationMessage(List<Trip> matchedTrips) {
         StringBuilder message = new StringBuilder();
         for (Trip matchedTrip : matchedTrips) {
-            DayOfWeek dayOfWeek = matchedTrip.getDate().getDayOfWeek();
-            String dayName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"));
 
             LocalTime time = matchedTrip.getDate().toLocalTime();
             String timeFormatted = time.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -493,11 +505,12 @@ public class TripService {
                     .append(" -> ")
                     .append(matchedTrip.getDestination().getCity())
                     .append(" el ")
-                    .append(dayName)
+                    .append(getDayOfWeek(matchedTrip.getDate()))
                     .append(" a las ")
                     .append(timeFormatted)
                     .append("\n");
         }
+
         return message.toString();
     }
 
@@ -506,7 +519,7 @@ public class TripService {
         boolean matchOrigin = tripAlert.getOrigin().contains(trip.getOrigin().getCity());
         boolean matchDestination = tripAlert.getDestination().contains(trip.getDestination().getCity());
         boolean matchRangeDate = (!trip.getDate().isBefore(tripAlert.getStartDate())) &&
-                                    (!trip.getDate().isAfter(tripAlert.getEndDate()));
+                (!trip.getDate().isAfter(tripAlert.getEndDate()));
         boolean matchMaxPrice = trip.getPrice() <= tripAlert.getMaxPrice();
 
         return matchOrigin && matchDestination && matchRangeDate && matchMaxPrice;
@@ -518,20 +531,30 @@ public class TripService {
         Trip trip = tripRepository.findById(tripId).orElseThrow(() -> new TripNotFoundException("Trip not found"));
         NotificationModel notificationModel = new NotificationModel();
         notificationModel.setTitle("Recordatorio de viaje");
-        notificationModel.setMessage(trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity());
+
+        notificationModel.setMessage("El conductor del viaje " + trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity() + "\n"
+
+                + getDayOfWeek(trip.getDate()) + " " + trip.getDate().getDayOfMonth() + "De " + getMonthOfYear(trip.getDate()) + " a enviado  un recordatorio.");
         notificationModel.setButtonTitle("Ver viaje");
         notificationModel.setActionData(this.URL + "/viajes/" + trip.getTripId());
         notificationModel.setNotificationType(NotificationType.REMINDER);
         notificationModel.setCreatedAt(LocalDateTime.now());
-       List<String> passengers = new ArrayList<>();
-       for(User user : trip.getPassengers()) {
-           passengers.add(user.getEmail());
-       }
-       notificationModel.setRecipientEmails(passengers);
+        List<String> passengers = new ArrayList<>();
+        for (User user : trip.getPassengers()) {
+            passengers.add(user.getEmail());
+        }
+        notificationModel.setRecipientEmails(passengers);
 
         notificationsClient.sendNotification(notificationModel);
 
 
     }
+    public static String capitalizeStr(String string) {
+        if (string == null || string.isEmpty()) {
+            return string;
+        }
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
 }
+
 

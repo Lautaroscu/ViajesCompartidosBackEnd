@@ -26,6 +26,7 @@ public class OutputUserDTO implements Serializable {
     private VehicleDTO vehiclePredetermined;
     private String password;
     private boolean verifiedEmail , verifiedPhone;
+    private String userImage;
 
 
     public OutputUserDTO(User user) {
@@ -42,6 +43,7 @@ public class OutputUserDTO implements Serializable {
         this.password = user.getPassword();
         this.verifiedEmail = user.isVerifiedEmail();
         this.verifiedPhone = user.isVerifiedPhone();
+        this.userImage = user.getUserImage();
     }
 
 }

@@ -76,6 +76,7 @@ public class JoinRequestService {
                         .actionData(tripUrl)
                         .recipientEmails(List.of(email))
                         .userId(userId)
+                        .html(null)
                         .build();
               notificationsClient.sendNotification(notificationModel);
 

@@ -1,9 +1,6 @@
 package com.viajes.viajesCompartidos.services;
 
-import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
-import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
-import com.viajes.viajesCompartidos.DTO.user.PasswordDTO;
-import com.viajes.viajesCompartidos.DTO.user.VerifyDTO;
+import com.viajes.viajesCompartidos.DTO.user.*;
 import com.viajes.viajesCompartidos.DTO.vehicles.PredeterminedDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDeleteResponseDTO;
@@ -229,6 +226,13 @@ public class UserService {
         User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setPassword(password.getPassword());
         userRepository.save(user);
+    }
+
+    public void updateUserImage(int userId ,ImageDTO imageDTO) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setUserImage(imageDTO.getImageUrl());
+        userRepository.save(user);
+
     }
 }
 

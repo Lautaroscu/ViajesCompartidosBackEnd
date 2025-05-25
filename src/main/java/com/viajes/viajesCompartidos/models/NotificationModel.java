@@ -28,4 +28,5 @@ public class NotificationModel implements Serializable {
 
 
     private LocalDateTime createdAt;
+    private String html;
 }

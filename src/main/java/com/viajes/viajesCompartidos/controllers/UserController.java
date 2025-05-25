@@ -1,9 +1,7 @@
 package com.viajes.viajesCompartidos.controllers;
 
-import com.viajes.viajesCompartidos.DTO.user.InputUserDTO;
-import com.viajes.viajesCompartidos.DTO.user.OutputUserDTO;
-import com.viajes.viajesCompartidos.DTO.user.PasswordDTO;
-import com.viajes.viajesCompartidos.DTO.user.VerifyDTO;
+import com.viajes.viajesCompartidos.DTO.GenericResponseDTO;
+import com.viajes.viajesCompartidos.DTO.user.*;
 import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDTO;
 import com.viajes.viajesCompartidos.DTO.wallet.TransactionDTO;
 import com.viajes.viajesCompartidos.enums.TransactionType;
@@ -150,6 +148,11 @@ public class UserController {
         userService.updateUserPassword(userEmail , password);
         return ResponseEntity.ok().build();
 
+    }
+    @PatchMapping("/{userId}/update-image-url")
+    public ResponseEntity<?> updateImageUrl(@PathVariable int userId, @RequestBody ImageDTO imageDTO) {
+        userService.updateUserImage(userId ,imageDTO);
+        return ResponseEntity.ok(new GenericResponseDTO(true , "Image url updated successfully"));
     }
 
 

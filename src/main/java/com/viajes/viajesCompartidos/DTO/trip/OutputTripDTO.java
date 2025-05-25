@@ -22,6 +22,7 @@ public class OutputTripDTO  implements Serializable  {
     private List<UserPassengerDTO> passengers;
     private UserOwnerDTO owner;
     private int maxPassengers;
+    private String comment;
     private  int countOfPassengers;
     private TripStatus trip_status;
     private TripType tripType;
@@ -44,6 +45,7 @@ public class OutputTripDTO  implements Serializable  {
        this.chat = new ChatDTO(trip.getChat());
        this.date = trip.getDate();
        this.price = trip.getPrice();
+       this.comment = trip.getComment();
 
     }
 

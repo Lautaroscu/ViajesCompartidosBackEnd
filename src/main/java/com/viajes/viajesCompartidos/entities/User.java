@@ -20,6 +20,7 @@ import java.util.List;
 @Setter
 @ToString
 public class User {
+    private final BigDecimal INITIAL_USER_SCORE = BigDecimal.valueOf(3.00);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int userId;
@@ -57,12 +58,14 @@ public class User {
     @Column
     private boolean verifiedPhone;
 
+    @Column
+    private String userImage;
 
     public User() {
         ZoneId zoneId =ZoneId.of("America/Argentina/Buenos_Aires");
         registeredAt = LocalDate.now(zoneId);
         vehicles = new ArrayList<>();
-        valoration = BigDecimal.ZERO;
+        valoration = INITIAL_USER_SCORE;
         wallet = new Wallet(this);
         this.verifiedEmail = false;
         this.verifiedPhone = false;
