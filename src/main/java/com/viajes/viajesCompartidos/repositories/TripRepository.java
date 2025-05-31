@@ -20,4 +20,11 @@ public interface TripRepository extends JpaRepository<Trip, Integer> , JpaSpecif
 
     @Query("SELECT t from  Trip t LEFT JOIN t.passengers p  WHERE t.owner.userId = :userId OR p.userId = :userId")
     List<Trip> findTripsOfUser(@Param("userId") Integer userId);
+    @Query("SELECT COUNT(t) FROM Trip t WHERE t.owner.userId = :userId AND t.status = 'COMPLETED'")
+    long getCompletedTripsQuantityAsOwner(@Param("userId") int userId);
+
+
 }
+
+
+

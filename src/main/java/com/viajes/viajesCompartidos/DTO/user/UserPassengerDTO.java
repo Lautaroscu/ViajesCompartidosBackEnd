@@ -20,6 +20,7 @@ public class UserPassengerDTO implements Serializable {
     private BigDecimal valoration;
     private LocalDate registeredAt;
     private String phoneNumber;
+    private String userImage;
 
     public UserPassengerDTO(User user){
         this.id = user.getUserId();
@@ -28,5 +29,6 @@ public class UserPassengerDTO implements Serializable {
         this.valoration = user.getValoration();
         this.registeredAt = user.getRegisteredAt();
         this.phoneNumber = user.getPhone();
+        this.userImage = user.getUserImage();
     }
 }

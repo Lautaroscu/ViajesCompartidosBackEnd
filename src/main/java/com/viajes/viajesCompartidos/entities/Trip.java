@@ -82,9 +82,9 @@ public class Trip {
 
 
     public void addPassenger(User passenger) {
-        if(passenger.getWallet().getBalance().doubleValue() < this.getPrice()){
-            throw new NotEnoughBalanceException("Not enough balance");
-        }
+//        if(passenger.getWallet().getBalance().doubleValue() < this.getPrice()){
+//            throw new NotEnoughBalanceException("Not enough balance");
+//        }
         if(passengers.contains(passenger)) {
             throw new UserAlreadyExistsException("The passenger is already on the trip");
         }

@@ -167,5 +167,10 @@ public class TripController {
         tripService.sendTripReminder(tripId);
         return ResponseEntity.status(HttpStatus.CREATED).body(new GenericResponseDTO(true , "Reminder Sent"));
     }
+    @GetMapping("/user/{userId}/completed-trips")
+    public ResponseEntity<?> getCompletedTripsOwner(@PathVariable int userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(tripService.getCompletedTripsQuantity(userId));
+    }
+
 
 }

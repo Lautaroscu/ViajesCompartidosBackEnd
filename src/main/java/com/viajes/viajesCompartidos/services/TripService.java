@@ -69,7 +69,7 @@ public class TripService {
         this.locationRepository = locationRepository;
         this.walletService = walletService;
         this.tripAlertRepository = tripAlertRepository;
-        this.tolerance = 5.0;
+        this.tolerance = 10.0;
 
     }
 
@@ -118,19 +118,16 @@ public class TripService {
         User user = userRepository.findById(tripPassengerDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-
-        System.out.println(trip);
-        System.out.println(user);
-
-        // Intenta agregar el pasajero; si falla, se lanzará una excepción específica
+//
+//        // Intenta agregar el pasajero; si falla, se lanzará una excepción específica
         trip.addPassenger(user);
-        BigDecimal tripPrice = BigDecimal.valueOf(trip.getPrice());
-        TransactionDTO expense = new TransactionDTO();
-        expense.setAmount(tripPrice);
-        expense.setTransactionType(TransactionType.EXPENSE);
-        expense.setWalletId(user.getWallet().getId());
-
-        walletService.addTransaction(user.getUserId(), expense);
+//        BigDecimal tripPrice = BigDecimal.valueOf(trip.getPrice());
+//        TransactionDTO expense = new TransactionDTO();
+//        expense.setAmount(tripPrice);
+//        expense.setTransactionType(TransactionType.EXPENSE);
+//        expense.setWalletId(user.getWallet().getId());
+//
+//        walletService.addTransaction(user.getUserId(), expense);
 
         // Persistir los cambios en la base de datos
         tripRepository.save(trip);
@@ -271,14 +268,14 @@ public class TripService {
         JoinRequest joinRequest = joinRequestRepository.findByTrip_TripIdAndUser_UserId(tripId, userId).orElseThrow(() -> new JoinRequestNotFoundException("Join request not found"));
 
         trip.removePassenger(user);
-        long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
-        double refund = TripService.calculateRefund(trip.getPrice(), hoursDiff);
-        BigDecimal refundAmount = new BigDecimal(refund);
-        TransactionDTO refundTransactionDTO = new TransactionDTO();
-        refundTransactionDTO.setAmount(refundAmount);
-        refundTransactionDTO.setTransactionType(TransactionType.RECHARGE);
-        refundTransactionDTO.setWalletId(user.getWallet().getId());
-        walletService.addTransaction(user.getUserId(), refundTransactionDTO);
+//        long hoursDiff = TripService.calculateHoursDifference(LocalDateTime.now(), trip.getDate());
+//        double refund = TripService.calculateRefund(trip.getPrice(), hoursDiff);
+//        BigDecimal refundAmount = new BigDecimal(refund);
+//        TransactionDTO refundTransactionDTO = new TransactionDTO();
+//        refundTransactionDTO.setAmount(refundAmount);
+//        refundTransactionDTO.setTransactionType(TransactionType.RECHARGE);
+//        refundTransactionDTO.setWalletId(user.getWallet().getId());
+//        walletService.addTransaction(user.getUserId(), refundTransactionDTO);
         tripRepository.save(trip);
         joinRequestRepository.delete(joinRequest);
         joinRequestRepository.flush();
@@ -380,9 +377,8 @@ public class TripService {
     private boolean isUserInCity(CompleteTripDTO completeTripDTO) {
         final double EARTH_RADIUS = 6371.0; // Radio de la Tierra en kilómetros
 
-        double userLatitude = Math.toRadians(completeTripDTO.getUserLatitude());
-        double a = getA(completeTripDTO, userLatitude);
-
+        double a = getA(completeTripDTO);
+        System.out.print(completeTripDTO);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         // Distancia entre los dos puntos
@@ -390,11 +386,14 @@ public class TripService {
         System.out.println("Distance: " + distance);
 
         // Comparar con la tolerancia
+
         return distance <= tolerance;
     }
 
-    private static double getA(CompleteTripDTO completeTripDTO, double userLatitude) {
+    private static double getA(CompleteTripDTO completeTripDTO) {
         double userLongitude = Math.toRadians(completeTripDTO.getUserLongitude());
+        double userLatitude = Math.toRadians(completeTripDTO.getUserLatitude());
+
         double cityLatitude = Math.toRadians(completeTripDTO.getCityLatitude());
         double cityLongitude = Math.toRadians(completeTripDTO.getCityLongitude());
 
@@ -554,6 +553,10 @@ public class TripService {
             return string;
         }
         return string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
+
+    public CompletedTripsQuantityDTO getCompletedTripsQuantity(int userId) {
+        return new CompletedTripsQuantityDTO(tripRepository.getCompletedTripsQuantityAsOwner(userId));
     }
 }
 

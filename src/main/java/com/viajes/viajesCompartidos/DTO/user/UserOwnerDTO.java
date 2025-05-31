@@ -17,6 +17,4 @@ public class UserOwnerDTO extends UserPassengerDTO {
         super(user);
         this.vehiclePredetermined = user.getVehicles().stream().filter(Vehicle::isPredetermined).map(VehicleDTO::new).findFirst().orElse(null);
     }
-
-
 }

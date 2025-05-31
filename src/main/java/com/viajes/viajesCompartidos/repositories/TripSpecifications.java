@@ -36,7 +36,9 @@ public class TripSpecifications {
             Predicate ownerPredicate = criteriaBuilder.notEqual(root.get("owner").get("userId"), userId);
 
             // Excluir los viajes que están cancelados
-            Predicate statusPredicate = criteriaBuilder.notEqual(root.get("status"), TripStatus.CANCELED);
+            Predicate statusCanceledPredicate = criteriaBuilder.notEqual(root.get("status"), TripStatus.CANCELED);
+            Predicate statusCompletedPredicate = criteriaBuilder.notEqual(root.get("status"), TripStatus.COMPLETED);
+
 
             // Subconsulta para comprobar si el userId ya es pasajero en el viaje
             Subquery<Long> subquery = query.subquery(Long.class);
@@ -51,7 +53,7 @@ public class TripSpecifications {
 
             Predicate passengersPredicate = criteriaBuilder.not(criteriaBuilder.exists(subquery));
 
-            return criteriaBuilder.and(ownerPredicate, statusPredicate, passengersPredicate);
+            return criteriaBuilder.and(ownerPredicate, statusCanceledPredicate ,statusCompletedPredicate ,passengersPredicate);
         };
     }
 
