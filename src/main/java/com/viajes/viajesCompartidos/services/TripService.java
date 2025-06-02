@@ -488,7 +488,7 @@ public class TripService {
 
     private String getMonthOfYear(LocalDateTime dateTime) {
         Month month = dateTime.getMonth();
-        return month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"));
+        return TripService.capitalizeStr(month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")));
     }
 
     private String buildNotificationMessage(List<Trip> matchedTrips) {
@@ -531,9 +531,9 @@ public class TripService {
         NotificationModel notificationModel = new NotificationModel();
         notificationModel.setTitle("Recordatorio de viaje");
 
-        notificationModel.setMessage("El conductor del viaje " + trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity() + "\n"
+        notificationModel.setMessage("El conductor " + trip.getOwner().getFirstName() + " del viaje " + trip.getOrigin().getCity() + " -> " + trip.getDestination().getCity() + "\n"
 
-                + getDayOfWeek(trip.getDate()) + " " + trip.getDate().getDayOfMonth() + "De " + getMonthOfYear(trip.getDate()) + " a enviado  un recordatorio.");
+                + getDayOfWeek(trip.getDate()) + " " + trip.getDate().getDayOfMonth() + "de " + getMonthOfYear(trip.getDate()) + " a enviado  un recordatorio.");
         notificationModel.setButtonTitle("Ver viaje");
         notificationModel.setActionData(this.URL + "/viajes/" + trip.getTripId());
         notificationModel.setNotificationType(NotificationType.REMINDER);
