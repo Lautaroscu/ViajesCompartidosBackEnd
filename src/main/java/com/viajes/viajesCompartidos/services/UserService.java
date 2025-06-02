@@ -45,7 +45,10 @@ public class UserService {
     }
 
     public OutputUserDTO getUser(String email) {
+        System.out.print(email);
         User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("User not found" ) );
+        System.out.print(user);
+
         return new OutputUserDTO(user);
     }
 
