@@ -85,6 +85,7 @@ public class TripService {
         Specification<Trip> dateFilter = TripSpecifications.isDateInRange(filterTripDTO.getStartDate(), filterTripDTO.getEndDate());
         Specification<Trip> availabilityFilter = TripSpecifications.isAvailableForUser(filterTripDTO.getUserId());
         Specification<Trip> maxPrice = TripSpecifications.maxPrice(filterTripDTO.getMaxPrice());
+        Specification<Trip> tripType = TripSpecifications.tripType(filterTripDTO.getTripType());
         Specification<Trip> spec = Specification.where(null);
 
         if (filterTripDTO.getStrict().equals("false")) {
@@ -99,7 +100,8 @@ public class TripService {
                     .and(passengersFilter)
                     .and(dateFilter)
                     .and(availabilityFilter)
-                    .and(maxPrice);
+                    .and(maxPrice)
+                    .and(tripType);
         }
 
 
