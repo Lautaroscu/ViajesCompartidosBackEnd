@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -136,12 +137,12 @@ public class UserController {
     @PatchMapping("/{userId}/verifyEmail")
     public ResponseEntity<?> updateEmailStatus(@PathVariable int userId , @RequestBody VerifyDTO verifyDTO) {
         userService.verifyEmail(userId,verifyDTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new VerifyDTO(true));
     }
     @PatchMapping("/{userId}/verifyPhone")
     public ResponseEntity<?> updatePhoneStatus(@PathVariable int userId , @RequestBody VerifyDTO verifyDTO) {
         userService.verifyPhone(userId ,verifyDTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new VerifyDTO(true));
     }
     @PatchMapping("/{userEmail}/update-password")
     public ResponseEntity<?> updateUserPassword(@PathVariable String userEmail, @RequestBody PasswordDTO password) {
