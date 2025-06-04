@@ -45,10 +45,7 @@ public class UserService {
     }
 
     public OutputUserDTO getUser(String email) {
-        System.out.print(email);
         User user = userRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException("User not found" ) );
-        System.out.print(user);
-
         return new OutputUserDTO(user);
     }
 
@@ -57,13 +54,21 @@ public class UserService {
         if (isBadRequest(userDTO)) {
             throw new BadRequestException("Invalid user, check the fields and try again");
         }
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User not found");
-        }
-        User userById = userRepository.findById(id).get();
+
+        User userById = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
         userById.setFirstName(userDTO.getFirstName());
         userById.setLastName(userDTO.getLastName());
         userById.setPhone(userDTO.getPhoneNumber());
+        //Si quiere cambiar de email, checkeamos que ese mail no este siendo usando por otra persona en la base de datos
+        if((userDTO.getEmail() != null && !userDTO.getEmail().isEmpty()) && !userDTO.getEmail().equals(userById.getEmail())) {
+            if(userRepository.existsByEmail(userDTO.getEmail())) {
+                throw new BadRequestException("Email already used");
+            }else {
+                userById.setEmail(userDTO.getEmail());
+            }
+
+        }
+        userById.setResidenceCity(userDTO.getResidenceCity());
         userById = userRepository.save(userById);
         return new OutputUserDTO(userById);
     }
@@ -74,11 +79,23 @@ public class UserService {
         return new OutputUserDTO(user);
     }
 
-    private boolean isBadRequest(InputUserDTO dto) {
-        return dto.getFirstName() == null || dto.getLastName() == null || dto.getPhoneNumber() == null;
+
+    public boolean isValidEmail(String email) {
+        if (isNullOrEmpty(email)) return false;
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return email.matches(emailRegex);
     }
 
+    private boolean isBadRequest(InputUserDTO dto) {
+        return isNullOrEmpty(dto.getFirstName()) ||
+                isNullOrEmpty(dto.getLastName()) ||
+                isNullOrEmpty(dto.getPhoneNumber()) ||
+                !isValidEmail(dto.getEmail());
+    }
 
+    private boolean isNullOrEmpty(String s) {
+        return s == null || s.trim().isEmpty();
+    }
     public VehicleDTO addVehicle(Integer ownerId, VehicleDTO vehicleDTO) {
         User owner = userRepository.findById(ownerId).orElseThrow(() -> new UserNotFoundException("User not found"));
         Vehicle vehicle = new Vehicle();
@@ -201,6 +218,9 @@ public class UserService {
     }
 
     public OutputUserDTO createUser(InputUserDTO userDTO) {
+        if(isBadRequest(userDTO)) {
+            throw new BadRequestException("Bad request, check your fields and try again") ;
+        }
         User user = new User();
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
