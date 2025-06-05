@@ -7,6 +7,7 @@ import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDeleteResponseDTO;
 import com.viajes.viajesCompartidos.entities.Vehicle;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.InvalidUserEmailException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
 import com.viajes.viajesCompartidos.repositories.VehicleRepository;
@@ -62,7 +63,7 @@ public class UserService {
         //Si quiere cambiar de email, checkeamos que ese mail no este siendo usando por otra persona en la base de datos
         if((userDTO.getEmail() != null && !userDTO.getEmail().isEmpty()) && !userDTO.getEmail().equals(userById.getEmail())) {
             if(userRepository.existsByEmail(userDTO.getEmail())) {
-                throw new BadRequestException("Email already used");
+                throw new InvalidUserEmailException("Email already used");
             }else {
                 userById.setEmail(userDTO.getEmail());
             }

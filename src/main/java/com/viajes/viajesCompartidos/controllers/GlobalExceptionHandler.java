@@ -7,6 +7,7 @@ import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundExceptio
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.InvalidUserEmailException;
 import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
 import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
@@ -22,7 +23,9 @@ public class GlobalExceptionHandler {
             MaxPassengersOnBoardException.class,
             NotEnoughBalanceException.class ,
             TripContainsPassangersException.class ,
-            InvalidLocationException.class
+            InvalidLocationException.class ,
+            BadRequestException.class,
+            InvalidUserEmailException.class
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
         return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
