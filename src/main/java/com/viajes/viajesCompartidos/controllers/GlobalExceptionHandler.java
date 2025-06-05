@@ -7,10 +7,7 @@ import com.viajes.viajesCompartidos.exceptions.location.LocationNotFoundExceptio
 import com.viajes.viajesCompartidos.exceptions.trips.MaxPassengersOnBoardException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripContainsPassangersException;
 import com.viajes.viajesCompartidos.exceptions.trips.TripNotFoundException;
-import com.viajes.viajesCompartidos.exceptions.users.InvalidUserEmailException;
-import com.viajes.viajesCompartidos.exceptions.users.NotEnoughBalanceException;
-import com.viajes.viajesCompartidos.exceptions.users.UserAlreadyExistsException;
-import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,7 +22,8 @@ public class GlobalExceptionHandler {
             TripContainsPassangersException.class ,
             InvalidLocationException.class ,
             BadRequestException.class,
-            InvalidUserEmailException.class
+            InvalidUserEmailException.class ,
+            InvalidPhoneNumberException.class
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
         return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);

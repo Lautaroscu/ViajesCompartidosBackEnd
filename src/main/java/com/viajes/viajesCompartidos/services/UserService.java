@@ -7,6 +7,7 @@ import com.viajes.viajesCompartidos.DTO.vehicles.VehicleDeleteResponseDTO;
 import com.viajes.viajesCompartidos.entities.Vehicle;
 import com.viajes.viajesCompartidos.exceptions.BadRequestException;
 import com.viajes.viajesCompartidos.exceptions.EntityNotFoundException;
+import com.viajes.viajesCompartidos.exceptions.users.InvalidPhoneNumberException;
 import com.viajes.viajesCompartidos.exceptions.users.InvalidUserEmailException;
 import com.viajes.viajesCompartidos.exceptions.users.UserNotFoundException;
 import com.viajes.viajesCompartidos.repositories.UserRepository;
@@ -59,13 +60,21 @@ public class UserService {
         User userById = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
         userById.setFirstName(userDTO.getFirstName());
         userById.setLastName(userDTO.getLastName());
+        if(!userDTO.getPhoneNumber().equals(userById.getPhone())) {
+            userById.setVerifiedPhone(false);
+        }
+        if(!isValidPhoneNumber(userDTO.getPhoneNumber())) {
+            throw new InvalidPhoneNumberException("Invalid phone number: it must contain exactly 10 digits.");
+        }
         userById.setPhone(userDTO.getPhoneNumber());
+
         //Si quiere cambiar de email, checkeamos que ese mail no este siendo usando por otra persona en la base de datos
         if((userDTO.getEmail() != null && !userDTO.getEmail().isEmpty()) && !userDTO.getEmail().equals(userById.getEmail())) {
             if(userRepository.existsByEmail(userDTO.getEmail())) {
                 throw new InvalidUserEmailException("Email already used");
             }else {
                 userById.setEmail(userDTO.getEmail());
+                userById.setVerifiedEmail(false);
             }
 
         }
@@ -86,7 +95,11 @@ public class UserService {
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         return email.matches(emailRegex);
     }
-
+    public boolean isValidPhoneNumber(String phoneNumber) {
+        if (isNullOrEmpty(phoneNumber)) return false;
+        String phoneNumberRegex = "^\\d{10}$";
+        return phoneNumber.matches(phoneNumberRegex);
+    }
     private boolean isBadRequest(InputUserDTO dto) {
         return isNullOrEmpty(dto.getFirstName()) ||
                 isNullOrEmpty(dto.getLastName()) ||
@@ -221,6 +234,12 @@ public class UserService {
     public OutputUserDTO createUser(InputUserDTO userDTO) {
         if(isBadRequest(userDTO)) {
             throw new BadRequestException("Bad request, check your fields and try again") ;
+        }
+        if(!isValidPhoneNumber(userDTO.getPhoneNumber())) {
+            throw new InvalidPhoneNumberException("Invalid phone number: it must contain exactly 10 digits.");
+        }
+        if(!isValidEmail(userDTO.getEmail())) {
+            throw new InvalidUserEmailException("Invalid email address");
         }
         User user = new User();
         user.setFirstName(userDTO.getFirstName());
